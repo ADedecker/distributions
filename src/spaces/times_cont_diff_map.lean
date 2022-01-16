@@ -5,20 +5,31 @@ open_locale manifold
 
 variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
-(s : set E)
+(Ω : set E)
 (F : Type*) [normed_group F] [normed_space 𝕜 F]
 (n : with_top ℕ)
 
 @[protect_proj]
 structure times_cont_diff_map_on :=
 (to_fun                 : E → F)
-(eq_zero                : ∀ x ∉ s, to_fun x = 0)
-(times_cont_diff_to_fun : times_cont_diff_on 𝕜 n to_fun s)
+(eq_zero                : ∀ x ∉ Ω, to_fun x = 0)
+(times_cont_diff_to_fun : times_cont_diff_on 𝕜 n to_fun Ω)
 
 def times_cont_diff_map := times_cont_diff_map_on 𝕜 (univ : set E) F
 
-#check iterated_fderiv_within
+localized "notation `C^` n `⟮` Ω `, ` F `⟯[` 𝕂 `]` :=
+  times_cont_diff_map_on 𝕂 Ω F n" in distribution
 
-#check times_cont_mdiff_map
+def times_cont_diff_map_on.to_part_fun (f : C^n⟮Ω, F⟯[𝕜]) (x : Ω) : F := 
+f.to_fun x
 
-example : topological_space (C^n⟮s; F⟯[𝕜]) := infer_instance
+instance : topological_space (C^n⟮Ω, F⟯[𝕜]) := sorry
+
+@[protect_proj]
+structure times_cont_diff_map_supported_on (K : set Ω) extends C^n⟮Ω, F⟯[𝕜] :=
+(support_in : function.support (to_times_cont_diff_map_on.to_part_fun 𝕜 Ω F n) ⊆ K)
+
+localized "notation `C^` n`⟮` Ω `, ` F `; ` K`⟯[` 𝕂 `]` :=
+  times_cont_diff_map_supported_on 𝕂 Ω F n K" in distribution
+
+instance foo (K : set Ω) : topological_space (C^n⟮Ω, F; K⟯[𝕜]) := infer_instance
