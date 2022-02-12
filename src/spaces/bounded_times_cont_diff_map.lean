@@ -36,13 +36,24 @@ end
 
 end prelim
 
-structure bounded_times_cont_diff_map (𝕜 E F : Type*) [nondiscrete_normed_field 𝕜] 
+def bounded_times_cont_diff_map_submodule (𝕜 E F : Type*) [nondiscrete_normed_field 𝕜] 
   [normed_group E] [normed_group F] [normed_space 𝕜 E] [normed_space 𝕜 F] 
-  (n : with_top ℕ) :=
-(to_fun : E → F)
-(times_cont_diff' : times_cont_diff 𝕜 n to_fun)
-(bounded' : ∀ (i : ℕ), (i : with_top ℕ) ≤ n → 
-  ∃ C, ∀ x, ∥iterated_fderiv 𝕜 i to_fun x∥ ≤ C)
+  (n : with_top ℕ) : submodule 𝕜 (E → F) :=
+{ carrier := {f | times_cont_diff 𝕜 n f ∧ ∀ (i : ℕ), ↑i ≤ n → 
+                  ∃ C, ∀ x, ∥iterated_fderiv 𝕜 i f x∥ ≤ C },
+  zero_mem' := ⟨times_cont_diff_zero_fun, λ i hi, ⟨0, λ x, 
+    by rw [pi.zero_def, iterated_fderiv_within_zero_fun, pi.zero_apply, norm_zero]⟩⟩,
+  add_mem' := λ f g hf hg, ⟨hf.1.add hg.1, λ i hi, 
+    let ⟨Cf, hCf⟩ := hf.2 i hi, ⟨Cg, hCg⟩ := hg.2 i hi in ⟨Cf + Cg, λ x, 
+    by {rw [iterated_fderiv_add hf.1 hg.1 hi hi], exact norm_add_le_of_le (hCf x) (hCg x)}⟩⟩,
+  smul_mem' := λ c f hf, ⟨times_cont_diff_const.smul hf.1, λ i hi, 
+    let ⟨C, hC⟩ := hf.2 i hi in ⟨∥c∥ * C, λ x, 
+    by {rw [iterated_fderiv_smul hf.1 hi, pi.smul_apply, norm_smul],
+        exact mul_le_mul_of_nonneg_left (hC x) (norm_nonneg _) }⟩⟩ }
+
+def bounded_times_cont_diff_map (𝕜 E F : Type*) [nondiscrete_normed_field 𝕜] 
+  [normed_group E] [normed_group F] [normed_space 𝕜 E] [normed_space 𝕜 F] 
+  (n : with_top ℕ) := ↥(bounded_times_cont_diff_map_submodule 𝕜 E F n)
 
 localized "notation `B^`n`⟮`E`,`F`;`𝕜`⟯` := bounded_times_cont_diff_map 𝕜 E F n" in 
   bounded_times_cont_diff_map
@@ -52,102 +63,30 @@ namespace bounded_times_cont_diff_map
 variables {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜] [normed_group E] [normed_group F]
   [normed_space 𝕜 E] [normed_space 𝕜 F] {n : with_top ℕ} {f g : B^n⟮E, F; 𝕜⟯} {x : E}
 
-instance : has_coe_to_fun (B^n⟮E, F; 𝕜⟯) (λ _, E → F) :=  ⟨λ f, f.to_fun⟩
+instance : add_comm_group (B^n⟮E, F; 𝕜⟯) := submodule.add_comm_group _
+instance : module 𝕜 (B^n⟮E, F; 𝕜⟯) := submodule.module _
+
+instance : has_coe_to_fun (B^n⟮E, F; 𝕜⟯) (λ _, E → F) := ⟨λ f, f.1⟩
 
 @[ext] lemma ext (H : ∀x, f x = g x) : f = g :=
-by { cases f, cases g, congr, ext, exact H x, }
+by {ext, exact H x}
 
 lemma bounded (f : B^n⟮E, F; 𝕜⟯) {i : ℕ} (hi : (i : with_top ℕ) ≤ n) : 
   ∃ C, ∀ x, ∥iterated_fderiv 𝕜 i f x∥ ≤ C :=
-f.bounded' i hi
+f.2.2 i hi
 
 lemma times_cont_diff (f : B^n⟮E, F; 𝕜⟯) :
   times_cont_diff 𝕜 n f :=
-f.times_cont_diff'
-
-instance : has_zero (B^n⟮E, F; 𝕜⟯) := 
-{ zero := 
-  { to_fun := 0,
-    times_cont_diff' := times_cont_diff_zero_fun,
-    bounded' := 
-    begin
-      intros i hi,
-      use 0,
-      intros x,
-      rw [pi.zero_def, iterated_fderiv_within_zero_fun, pi.zero_apply, norm_zero]
-    end } }
+f.2.1
 
 @[simp] lemma coe_zero : ((0 : B^n⟮E, F; 𝕜⟯) : E → F) = 0 := rfl
 lemma zero_apply : (0 : B^n⟮E, F; 𝕜⟯) x = 0 := rfl
 
-instance : has_add (B^n⟮E, F; 𝕜⟯) :=
-{ add := λ a b,
-  { to_fun := a + b,
-    times_cont_diff' := a.times_cont_diff.add b.times_cont_diff,
-    bounded' := 
-    begin
-      intros i hi,
-      rcases a.bounded hi with ⟨Ca, hCa⟩,
-      rcases b.bounded hi with ⟨Cb, hCb⟩,
-      use Ca + Cb,
-      intros x,
-      rw iterated_fderiv_add a.times_cont_diff b.times_cont_diff hi hi,
-      exact norm_add_le_of_le (hCa x) (hCb x)
-    end } }
-
 @[simp] lemma coe_add : ⇑(f + g) = f + g := rfl
 lemma add_apply : (f + g) x = f x + g x := rfl
 
-instance : has_neg (B^n⟮E, F; 𝕜⟯) := 
-{ neg := λ a,
-  { to_fun := -a,
-    times_cont_diff' := a.times_cont_diff.neg,
-    bounded' := 
-    begin
-      intros i hi,
-      rcases a.bounded hi with ⟨C, hC⟩,
-      use C,
-      intros x,
-      rw [iterated_fderiv_neg a.times_cont_diff hi, pi.neg_apply, norm_neg],
-      exact hC x
-    end } }
-
 @[simp] lemma coe_neg : ⇑(-f) = -f := rfl
 lemma neg_apply : (-f) x = -f x := rfl
-
-instance : add_comm_group (B^n⟮E, F; 𝕜⟯) :=
-{ zero_add := λ a, by {ext, rw [add_apply, zero_apply, zero_add] },
-  add_zero := λ a, by {ext, rw [add_apply, zero_apply, add_zero] },
-  add_assoc := λ a b c, by {ext, rw [add_apply, add_apply, add_apply, add_apply, add_assoc] },
-  add_comm := λ a b, by {ext, rw [add_apply, add_apply, add_comm] },
-  add_left_neg := λ a, by {ext, rw [add_apply, neg_apply, add_left_neg, zero_apply] },
-  ..bounded_times_cont_diff_map.has_neg,
-  ..bounded_times_cont_diff_map.has_zero,
-  ..bounded_times_cont_diff_map.has_add }
-
-instance : has_scalar 𝕜 (B^n⟮E, F; 𝕜⟯) :=
-{ smul := λ x a, 
-  { to_fun := x • a,
-    times_cont_diff' := times_cont_diff_const.smul a.times_cont_diff,
-    bounded' := 
-    begin
-      intros i hi,
-      rcases a.bounded hi with ⟨C, hC⟩,
-      use ∥x∥ * C,
-      intros y,
-      rw [iterated_fderiv_smul a.times_cont_diff hi, pi.smul_apply, norm_smul],
-      exact mul_le_mul_of_nonneg_left (hC y) (norm_nonneg _) 
-    end } }
-
-instance : module 𝕜 (B^n⟮E, F; 𝕜⟯) :=
-{ smul     := (•),
-  smul_add := λ c f g, ext $ λ x, smul_add c (f x) (g x),
-  add_smul := λ c₁ c₂ f, ext $ λ x, add_smul c₁ c₂ (f x),
-  mul_smul := λ c₁ c₂ f, ext $ λ x, mul_smul c₁ c₂ (f x),
-  one_smul := λ f, ext $ λ x, one_smul 𝕜 (f x),
-  smul_zero := λ c, ext $ λ x, smul_zero c,
-  zero_smul := λ f, ext $ λ x, zero_smul 𝕜 (f x),
-  ..bounded_continuous_function.add_comm_monoid }
 
 protected noncomputable def iterated_fderiv {i : ℕ} (hi : (i : with_top ℕ) ≤ n) 
   (f : B^n⟮E, F; 𝕜⟯) : 
