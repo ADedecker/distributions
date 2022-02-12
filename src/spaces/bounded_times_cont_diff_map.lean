@@ -36,7 +36,7 @@ end
 
 end prelim
 
-def bounded_times_cont_diff_map_submodule (𝕜 E F : Type*) [nondiscrete_normed_field 𝕜] 
+private def bounded_times_cont_diff_map_submodule (𝕜 E F : Type*) [nondiscrete_normed_field 𝕜] 
   [normed_group E] [normed_group F] [normed_space 𝕜 E] [normed_space 𝕜 F] 
   (n : with_top ℕ) : submodule 𝕜 (E → F) :=
 { carrier := {f | times_cont_diff 𝕜 n f ∧ ∀ (i : ℕ), ↑i ≤ n → 
