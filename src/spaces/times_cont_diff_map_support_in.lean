@@ -1,4 +1,5 @@
 import spaces.bounded_times_cont_diff_map
+import ..compacts
 
 open topological_space
 open_locale bounded_times_cont_diff_map
@@ -18,6 +19,8 @@ def times_cont_diff_map_supported_in (𝕜 E F : Type*) [nondiscrete_normed_fiel
   (n : with_top ℕ) := ↥(times_cont_diff_map_supported_in_submodule 𝕜 E F K n)
 
 namespace times_cont_diff_map_supported_in
+
+section any_set
 
 variables {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜] [normed_group E] [normed_group F]
   [normed_space 𝕜 E] [normed_space 𝕜 F] {K : set E} {n : with_top ℕ} 
@@ -39,16 +42,27 @@ lemma supported_in (f : times_cont_diff_map_supported_in 𝕜 E F K n) :
   ∀ x ∉ K, f x = 0 :=
 f.2.2
 
-def to_bounded_times_cont_diff_map (hK : is_closed K) (f : times_cont_diff_map_supported_in 𝕜 E F K n) : 
+end any_set
+
+section compact
+
+variables {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜] [normed_group E] [normed_group F]
+  [normed_space 𝕜 E] [normed_space 𝕜 F] {K : compacts E} {n : with_top ℕ} 
+  {f g : times_cont_diff_map_supported_in 𝕜 E F K n} {x : E}
+
+def to_bounded_times_cont_diff_map (f : times_cont_diff_map_supported_in 𝕜 E F K n) : 
   B^n⟮E,F;𝕜⟯ :=
 ⟨f, f.times_cont_diff, sorry⟩
 
-def to_bounded_times_cont_diff_mapₗ (hK : is_closed K) : 
+def to_bounded_times_cont_diff_mapₗ : 
   times_cont_diff_map_supported_in 𝕜 E F K n →ₗ[𝕜] (B^n⟮E,F;𝕜⟯) :=
 { to_fun := to_bounded_times_cont_diff_map,
-  map_add' := λ f g, 
-  begin
-    ext, simp,
-  end }
+  map_add' := sorry,
+  map_smul' := sorry }
+
+noncomputable instance : topological_space (times_cont_diff_map_supported_in 𝕜 E F K n) :=
+  topological_space.induced to_bounded_times_cont_diff_mapₗ infer_instance
+
+end compact
 
 end times_cont_diff_map_supported_in
