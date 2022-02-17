@@ -61,7 +61,13 @@ def to_bounded_times_cont_diff_mapₗ :
   map_smul' := sorry }
 
 noncomputable instance : topological_space (times_cont_diff_map_supported_in 𝕜 E F K n) :=
-  topological_space.induced to_bounded_times_cont_diff_mapₗ infer_instance
+topological_space.induced to_bounded_times_cont_diff_mapₗ infer_instance
+
+instance : topological_add_group (times_cont_diff_map_supported_in 𝕜 E F K n) :=
+topological_add_group_induced _
+
+instance : has_continuous_smul 𝕜 (times_cont_diff_map_supported_in 𝕜 E F K n) :=
+has_continuous_smul_induced _
 
 end compact
 

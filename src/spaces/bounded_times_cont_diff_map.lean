@@ -1,5 +1,6 @@
 import analysis.calculus.times_cont_diff
 import topology.continuous_function.bounded
+import analysis.seminorm
 
 open set
 open_locale bounded_continuous_function
@@ -13,7 +14,15 @@ lemma iterated_fderiv_add {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜]
   (hig : (i : with_top ℕ) ≤ ng) : 
 iterated_fderiv 𝕜 i (f + g) = (iterated_fderiv 𝕜 i f) + (iterated_fderiv 𝕜 i g) :=
 begin
-  sorry
+  induction i with i hi,
+  { ext x, sorry /-simp-/ },
+  { ext x h, 
+    rw [pi.add_apply, continuous_multilinear_map.add_apply, iterated_fderiv_succ_apply_left,
+        iterated_fderiv_succ_apply_left, iterated_fderiv_succ_apply_left, 
+        hi (trans _ hif) (trans _ hig), pi.add_def, 
+        fderiv_add sorry sorry,
+        continuous_linear_map.add_apply, continuous_multilinear_map.add_apply];
+    exact_mod_cast (nat.le_succ _) }
 end
 
 lemma iterated_fderiv_smul {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜] 
@@ -138,5 +147,15 @@ protected noncomputable def iterated_fderivL {i : ℕ} (hi : (i : with_top ℕ) 
   (B^n⟮E, F; 𝕜⟯) →L[𝕜] (E →ᵇ (E [×i]→L[𝕜] F)) :=
 { to_linear_map := bounded_times_cont_diff_map.iterated_fderivₗ hi,
   cont := continuous_infi_dom (continuous_infi_dom continuous_induced_dom) }
+
+instance : topological_add_group (B^n⟮E, F; 𝕜⟯) :=
+topological_add_group_infi 
+  (λ i, topological_add_group_infi $ λ hi, topological_add_group_induced _)
+
+instance : has_continuous_smul 𝕜 (B^n⟮E, F; 𝕜⟯) :=
+has_continuous_smul_infi
+  (λ i, has_continuous_smul_infi $ λ hi, has_continuous_smul_induced _)
+
+--instance {𝕜' : Type*} [normed_linear_ordered_field 𝕜'] : locally_convex_space 𝕜' (B^n⟮E, F; 𝕜'⟯) :=
 
 end bounded_times_cont_diff_map
