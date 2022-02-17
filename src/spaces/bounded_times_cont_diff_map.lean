@@ -15,14 +15,24 @@ lemma iterated_fderiv_add {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜]
 iterated_fderiv 𝕜 i (f + g) = (iterated_fderiv 𝕜 i f) + (iterated_fderiv 𝕜 i g) :=
 begin
   induction i with i hi,
-  { ext x, sorry /-simp-/ },
+  { ext x, simp },
   { ext x h, 
-    rw [pi.add_apply, continuous_multilinear_map.add_apply, iterated_fderiv_succ_apply_left,
-        iterated_fderiv_succ_apply_left, iterated_fderiv_succ_apply_left, 
-        hi (trans _ hif) (trans _ hig), pi.add_def, 
-        fderiv_add sorry sorry,
-        continuous_linear_map.add_apply, continuous_multilinear_map.add_apply];
-    exact_mod_cast (nat.le_succ _) }
+    have hif' : (i : with_top ℕ) < nf := 
+      lt_of_lt_of_le (with_top.coe_lt_coe.mpr $ nat.lt_succ_self _) hif,
+    have hig' : (i : with_top ℕ) < ng := 
+      lt_of_lt_of_le (with_top.coe_lt_coe.mpr $ nat.lt_succ_self _) hig,
+    have hdf : differentiable 𝕜 (iterated_fderiv 𝕜 i f) :=
+      (times_cont_diff_iff_continuous_differentiable.mp hf).2 i hif',
+    have hdg : differentiable 𝕜 (iterated_fderiv 𝕜 i g) :=
+      (times_cont_diff_iff_continuous_differentiable.mp hg).2 i hig',
+    calc iterated_fderiv 𝕜 (i+1) (f + g) x h 
+        = fderiv 𝕜 (iterated_fderiv 𝕜 i (f + g)) x (h 0) (fin.tail h) : rfl
+    ... = fderiv 𝕜 (iterated_fderiv 𝕜 i f + iterated_fderiv 𝕜 i g) x (h 0) (fin.tail h) : 
+            by rw hi hif'.le hig'.le
+    ... = (fderiv 𝕜 (iterated_fderiv 𝕜 i f) + fderiv 𝕜 (iterated_fderiv 𝕜 i g)) 
+              x (h 0) (fin.tail h) : 
+            by rw [pi.add_def, fderiv_add hdf.differentiable_at hdg.differentiable_at]; refl
+    ... = (iterated_fderiv 𝕜 (i+1) f + iterated_fderiv 𝕜 (i+1) g) x h : rfl }
 end
 
 lemma iterated_fderiv_smul {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜] 
@@ -31,7 +41,20 @@ lemma iterated_fderiv_smul {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜]
   (hif : (i : with_top ℕ) ≤ nf) : 
 iterated_fderiv 𝕜 i (a • f) = a • (iterated_fderiv 𝕜 i f) :=
 begin
-  sorry
+  induction i with i hi,
+  { ext, simp },
+  { ext x h,
+    have hif' : (i : with_top ℕ) < nf := 
+      lt_of_lt_of_le (with_top.coe_lt_coe.mpr $ nat.lt_succ_self _) hif,
+    have hdf : differentiable 𝕜 (iterated_fderiv 𝕜 i f) :=
+      (times_cont_diff_iff_continuous_differentiable.mp hf).2 i hif',
+    calc iterated_fderiv 𝕜 (i+1) (a • f) x h
+        = fderiv 𝕜 (iterated_fderiv 𝕜 i (a • f)) x (h 0) (fin.tail h) : rfl
+    ... = fderiv 𝕜 (a • iterated_fderiv 𝕜 i f) x (h 0) (fin.tail h) : 
+            by rw hi hif'.le
+    ... = (a • fderiv 𝕜 (iterated_fderiv 𝕜 i f)) x (h 0) (fin.tail h) :
+            by rw [pi.smul_def, fderiv_const_smul hdf.differentiable_at]; refl
+    ... = (a • iterated_fderiv 𝕜 (i+1) f) x h : rfl }
 end
 
 lemma iterated_fderiv_neg {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜] 
@@ -39,9 +62,10 @@ lemma iterated_fderiv_neg {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜]
   {nf : with_top ℕ} {i : ℕ} {f : E → F} (hf : times_cont_diff 𝕜 nf f)
   (hif : (i : with_top ℕ) ≤ nf) : 
 iterated_fderiv 𝕜 i (-f) = -(iterated_fderiv 𝕜 i f) :=
-begin
-  sorry
-end
+calc iterated_fderiv 𝕜 i (-f) 
+    = iterated_fderiv 𝕜 i ((-1 : 𝕜) • f) : by rw [neg_one_smul]
+... = (-1 : 𝕜) • iterated_fderiv 𝕜 i f : iterated_fderiv_smul hf hif
+... = -(iterated_fderiv 𝕜 i f) : by ext; exact neg_one_smul _ _
 
 end prelim
 

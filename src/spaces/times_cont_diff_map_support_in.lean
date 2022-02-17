@@ -57,8 +57,8 @@ def to_bounded_times_cont_diff_map (f : times_cont_diff_map_supported_in 𝕜 E 
 def to_bounded_times_cont_diff_mapₗ : 
   times_cont_diff_map_supported_in 𝕜 E F K n →ₗ[𝕜] (B^n⟮E,F;𝕜⟯) :=
 { to_fun := to_bounded_times_cont_diff_map,
-  map_add' := sorry,
-  map_smul' := sorry }
+  map_add' := λ f g, rfl,
+  map_smul' := λ a f, rfl }
 
 noncomputable instance : topological_space (times_cont_diff_map_supported_in 𝕜 E F K n) :=
 topological_space.induced to_bounded_times_cont_diff_mapₗ infer_instance
