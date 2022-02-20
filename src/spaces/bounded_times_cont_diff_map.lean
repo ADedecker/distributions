@@ -3,8 +3,8 @@ import topology.continuous_function.bounded
 import analysis.seminorm
 import ..bases
 
-open set
-open_locale bounded_continuous_function topological_space
+open set filter function
+open_locale bounded_continuous_function topological_space nnreal
 
 section prelim
 
@@ -94,6 +94,8 @@ localized "notation `B^`n`⟮`E`,`F`;`𝕜`⟯` := bounded_times_cont_diff_map �
 
 namespace bounded_times_cont_diff_map
 
+section any_field
+
 variables {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜] [normed_group E] [normed_group F]
   [normed_space 𝕜 E] [normed_space 𝕜 F] {n : with_top ℕ} {f g : B^n⟮E, F; 𝕜⟯} {x : E}
 
@@ -164,9 +166,77 @@ protected noncomputable def iterated_fderivₗ {i : ℕ} (hi : (i : with_top ℕ
   map_add' := λ f g, bounded_times_cont_diff_map.iterated_fderiv_add hi,
   map_smul' :=λ r f, bounded_times_cont_diff_map.iterated_fderiv_smul hi }
 
-noncomputable instance : topological_space (B^n⟮E, F; 𝕜⟯) := 
-  ⨅ (i : ℕ) (hi : (i : with_top ℕ) ≤ n), topological_space.induced 
-  (bounded_times_cont_diff_map.iterated_fderivₗ hi) infer_instance
+private noncomputable def tmp_topology₀ (i : ℕ) (hi : (i : with_top ℕ) ≤ n) : 
+  topological_space (B^n⟮E, F; 𝕜⟯) :=
+topological_space.induced (bounded_times_cont_diff_map.iterated_fderivₗ hi) infer_instance
+
+private noncomputable def tmp_topology₁ (i : ℕ) : 
+  topological_space (B^n⟮E, F; 𝕜⟯) :=
+⨅ (hi : (i : with_top ℕ) ≤ n), tmp_topology₀ i hi
+
+protected noncomputable def topology : topological_space (B^n⟮E, F; 𝕜⟯) := 
+  ⨅ (i : ℕ) (hi : (i : with_top ℕ) ≤ n), (tmp_topology₀ i hi)
+
+--instance {𝕜' : Type*} [normed_linear_ordered_field 𝕜'] : locally_convex_space 𝕜' (B^n⟮E, F; 𝕜'⟯) :=
+
+private lemma has_basis_zero₀ (i : ℕ) (hi : (i : with_top ℕ) ≤ n) : 
+  (@nhds B^n⟮E, F; 𝕜⟯ (tmp_topology₀ i hi) 0).has_basis (λ ε : ℝ, 0 < ε)
+  (λ ε, {f | ∥f.iterated_fderiv hi∥ < ε}) :=
+begin
+  rw nhds_induced,
+  refine (has_basis.comap _ (metric.nhds_basis_ball)).to_has_basis _ _;
+  rintros ε hε;
+  refine ⟨ε, hε, _⟩;
+  rw [linear_map.map_zero, ball_zero_eq];
+  refl
+end
+
+private lemma has_basis_zero₁ (i : ℕ) : 
+  (@nhds B^n⟮E, F; 𝕜⟯ (tmp_topology₁ i) 0).has_basis (λ ε : ℝ, 0 < ε)
+  (λ ε, {f | ∀ (hi : (i : with_top ℕ) ≤ n), ∥f.iterated_fderiv hi∥ < ε}) :=
+begin
+  rw [nhds_infi, has_basis_iff],
+  by_cases hi : (i : with_top ℕ) ≤ n,
+  { simp [hi, (has_basis_zero₀ i hi).mem_iff] },
+  { have : ∃ ε : ℝ, 0 < ε := ⟨1, zero_lt_one⟩,
+    intros t, 
+    simp [hi, univ_subset_iff, this] }
+end
+
+attribute [instance] bounded_times_cont_diff_map.topology
+
+protected lemma has_basis_zero' : (𝓝 0 : filter $ B^n⟮E, F; 𝕜⟯).has_basis 
+  (λ Nε : ℕ × ℝ, 0 < Nε.2) (λ Nε, {f | ∀ (i : ℕ) (hiN : i ≤ Nε.1) 
+    (hi : (i : with_top ℕ) ≤ n) , ∥f.iterated_fderiv hi∥ < Nε.2}) :=
+begin
+  rw nhds_infi,
+  convert foo _ has_basis_zero₁,
+  { ext, 
+    simp },
+  { intros i ε δ h f hf hi, 
+    exact lt_of_lt_of_le (hf hi) h }
+end
+
+protected lemma has_basis_zero : (𝓝 0 : filter $ B^n⟮E, F; 𝕜⟯).has_basis 
+  (λ Nε : ℕ × ℝ, 0 < Nε.2) (λ Nε, {f | ∀ (i : ℕ) (hiN : i ≤ Nε.1) 
+    (hi : (i : with_top ℕ) ≤ n) , ∥f.iterated_fderiv hi∥ < Nε.2}) :=
+begin
+  rw nhds_infi,
+  refine (has_basis_infi has_basis_zero₁).to_has_basis _ _,
+  { rintros ⟨I, ε⟩ ⟨hI, hε⟩,
+    refine ⟨⟨Sup I, Inf (insert 1 $ ε '' I)⟩, ⟨_, _⟩⟩,
+    { rw ((hI.image _).insert _).lt_cInf_iff (insert_nonempty _ _),
+      simpa using hε },
+    { intros f hf,
+      exact mem_bInter (λ i hiI hi, (((hI.image _).insert _).lt_cInf_iff 
+        (insert_nonempty _ _)).mp (hf i (le_cSup hI.bdd_above hiI) hi) _ 
+        (or.inr $ mem_image_of_mem _ hiI)) } },
+  { rintros ⟨N, ε⟩ hε,
+    refine ⟨⟨Iic N, const ℕ ε⟩, ⟨finite_Iic _, λ _ _, hε⟩, _⟩,
+    intros f hf,
+    rw mem_Inter₂ at hf,
+    exact hf }
+end
 
 protected noncomputable def iterated_fderivL {i : ℕ} (hi : (i : with_top ℕ) ≤ n) : 
   (B^n⟮E, F; 𝕜⟯) →L[𝕜] (E →ᵇ (E [×i]→L[𝕜] F)) :=
@@ -181,14 +251,14 @@ instance : has_continuous_smul 𝕜 (B^n⟮E, F; 𝕜⟯) :=
 has_continuous_smul_infi
   (λ i, has_continuous_smul_infi $ λ hi, has_continuous_smul_induced _)
 
---instance {𝕜' : Type*} [normed_linear_ordered_field 𝕜'] : locally_convex_space 𝕜' (B^n⟮E, F; 𝕜'⟯) :=
+end any_field
 
---set_option pp.all true
-protected lemma has_basis_zero : (𝓝 0 : filter $ B^n⟮E, F; 𝕜⟯).has_basis (λ ε : ℝ, 0 < ε)
-  (λ ε, {f | ∀ (i : ℕ) (hi : (i : with_top ℕ) ≤ n), ∥f.iterated_fderiv hi∥ < ε}) :=
-begin
-  rw [nhds_infi],
-  refine (filter.has_basis_infi_nat_of_monotone _ _ _).to_has_basis _ _,
-end
+section real
+
+variables {E F : Type*} [normed_group E] [normed_group F] [normed_space ℝ E] [normed_space ℝ F] 
+  {n : with_top ℕ} {f g : B^n⟮E, F; ℝ⟯} {x : E}
+
+
+end real
 
 end bounded_times_cont_diff_map
