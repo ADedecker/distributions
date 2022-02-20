@@ -28,7 +28,6 @@ variables {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜] [normed_group E] [n
 
 instance : add_comm_group (times_cont_diff_map_supported_in 𝕜 E F K n) := submodule.add_comm_group _
 instance : module 𝕜 (times_cont_diff_map_supported_in 𝕜 E F K n) := submodule.module _
-
 instance : has_coe_to_fun (times_cont_diff_map_supported_in 𝕜 E F K n) (λ _, E → F) := ⟨λ f, f.1⟩
 
 @[ext] lemma ext (H : ∀x, f x = g x) : f = g :=

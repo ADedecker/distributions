@@ -1,9 +1,10 @@
 import analysis.calculus.times_cont_diff
 import topology.continuous_function.bounded
 import analysis.seminorm
+import ..bases
 
 open set
-open_locale bounded_continuous_function
+open_locale bounded_continuous_function topological_space
 
 section prelim
 
@@ -181,5 +182,13 @@ has_continuous_smul_infi
   (λ i, has_continuous_smul_infi $ λ hi, has_continuous_smul_induced _)
 
 --instance {𝕜' : Type*} [normed_linear_ordered_field 𝕜'] : locally_convex_space 𝕜' (B^n⟮E, F; 𝕜'⟯) :=
+
+--set_option pp.all true
+protected lemma has_basis_zero : (𝓝 0 : filter $ B^n⟮E, F; 𝕜⟯).has_basis (λ ε : ℝ, 0 < ε)
+  (λ ε, {f | ∀ (i : ℕ) (hi : (i : with_top ℕ) ≤ n), ∥f.iterated_fderiv hi∥ < ε}) :=
+begin
+  rw [nhds_infi],
+  refine (filter.has_basis_infi_nat_of_monotone _ _ _).to_has_basis _ _,
+end
 
 end bounded_times_cont_diff_map
