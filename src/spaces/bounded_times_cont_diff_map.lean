@@ -228,6 +228,15 @@ instance : has_continuous_smul 𝕜 (B^n⟮E, F; 𝕜⟯) :=
 has_continuous_smul_infi
   (λ i, has_continuous_smul_infi $ λ hi, has_continuous_smul_induced _)
 
+variables (𝕜 E F n)
+
+noncomputable def to_bounded_continuous_map : 
+  (B^n⟮E, F; 𝕜⟯) →L[𝕜] (E →ᵇ F) :=
+{ to_fun := λ f, ⟨⟨f, sorry⟩, sorry⟩,
+  map_add' := sorry,
+  map_smul' := sorry,
+  cont := sorry }
+
 end any_field
 
 section real

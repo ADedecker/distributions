@@ -2,7 +2,7 @@ import spaces.times_cont_diff_map_support_in
 import ..tsupport
 
 open filter topological_space set
-open_locale topological_space filter pointwise
+open_locale topological_space filter pointwise bounded_times_cont_diff_map
 
 section prelim
 
@@ -213,6 +213,21 @@ begin
 end
 
 -- TODO : formulate this in term of bounded subsets
+
+noncomputable def to_bounded_times_cont_diff_map (f : Cc^n⟮Ω, E, F; ℝ⟯) : 
+  B^n⟮E,F;ℝ⟯ :=
+⟨f, f.times_cont_diff, sorry⟩
+
+noncomputable def to_bounded_times_cont_diff_mapₗ : 
+  Cc^n⟮Ω, E, F; ℝ⟯ →ₗ[ℝ] B^n⟮E ,F ; ℝ⟯ := 
+{ to_fun := to_bounded_times_cont_diff_map,
+  map_add' := sorry,
+  map_smul' := sorry }
+
+noncomputable def to_bounded_times_cont_diff_mapL : 
+  Cc^n⟮Ω, E, F; ℝ⟯ →L[ℝ] B^n⟮E ,F ; ℝ⟯ := 
+{ to_linear_map := to_bounded_times_cont_diff_mapₗ,
+  cont := sorry }
 
 end real
 
