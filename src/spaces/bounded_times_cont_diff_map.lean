@@ -181,19 +181,19 @@ protected noncomputable def topology : topological_space (B^n⟮E, F; 𝕜⟯) :
 
 private lemma has_basis_zero₀ (i : ℕ) (hi : (i : with_top ℕ) ≤ n) : 
   (@nhds B^n⟮E, F; 𝕜⟯ (tmp_topology₀ i hi) 0).has_basis (λ ε : ℝ, 0 < ε)
-  (λ ε, {f | ∥f.iterated_fderiv hi∥ < ε}) :=
+  (λ ε, bounded_times_cont_diff_map.iterated_fderiv hi ⁻¹' metric.ball 0 ε) :=
 begin
   rw nhds_induced,
   refine (has_basis.comap _ (metric.nhds_basis_ball)).to_has_basis _ _;
   rintros ε hε;
   refine ⟨ε, hε, _⟩;
-  rw [linear_map.map_zero, ball_zero_eq];
+  rw [linear_map.map_zero];
   refl
 end
 
 private lemma has_basis_zero₁ (i : ℕ) : 
   (@nhds B^n⟮E, F; 𝕜⟯ (tmp_topology₁ i) 0).has_basis (λ ε : ℝ, 0 < ε)
-  (λ ε, {f | ∀ (hi : (i : with_top ℕ) ≤ n), ∥f.iterated_fderiv hi∥ < ε}) :=
+  (λ ε, ⋂ (hi : ↑i ≤ n), bounded_times_cont_diff_map.iterated_fderiv hi ⁻¹' metric.ball 0 ε) :=
 begin
   rw [nhds_infi, has_basis_iff],
   by_cases hi : (i : with_top ℕ) ≤ n,
@@ -206,36 +206,13 @@ end
 attribute [instance] bounded_times_cont_diff_map.topology
 
 protected lemma has_basis_zero' : (𝓝 0 : filter $ B^n⟮E, F; 𝕜⟯).has_basis 
-  (λ Nε : ℕ × ℝ, 0 < Nε.2) (λ Nε, {f | ∀ (i : ℕ) (hiN : i ≤ Nε.1) 
-    (hi : (i : with_top ℕ) ≤ n) , ∥f.iterated_fderiv hi∥ < Nε.2}) :=
+  (λ Nε : ℕ × ℝ, 0 < Nε.2) (λ Nε, ⋂ (i : ℕ) (hiN : i ≤ Nε.1) (hi : ↑i ≤ n), 
+    bounded_times_cont_diff_map.iterated_fderiv hi ⁻¹' metric.ball 0 Nε.2) :=
 begin
   rw nhds_infi,
   convert foo _ has_basis_zero₁,
-  { ext, 
-    simp },
-  { intros i ε δ h f hf hi, 
-    exact lt_of_lt_of_le (hf hi) h }
-end
-
-protected lemma has_basis_zero : (𝓝 0 : filter $ B^n⟮E, F; 𝕜⟯).has_basis 
-  (λ Nε : ℕ × ℝ, 0 < Nε.2) (λ Nε, {f | ∀ (i : ℕ) (hiN : i ≤ Nε.1) 
-    (hi : (i : with_top ℕ) ≤ n) , ∥f.iterated_fderiv hi∥ < Nε.2}) :=
-begin
-  rw nhds_infi,
-  refine (has_basis_infi has_basis_zero₁).to_has_basis _ _,
-  { rintros ⟨I, ε⟩ ⟨hI, hε⟩,
-    refine ⟨⟨Sup I, Inf (insert 1 $ ε '' I)⟩, ⟨_, _⟩⟩,
-    { rw ((hI.image _).insert _).lt_cInf_iff (insert_nonempty _ _),
-      simpa using hε },
-    { intros f hf,
-      exact mem_bInter (λ i hiI hi, (((hI.image _).insert _).lt_cInf_iff 
-        (insert_nonempty _ _)).mp (hf i (le_cSup hI.bdd_above hiI) hi) _ 
-        (or.inr $ mem_image_of_mem _ hiI)) } },
-  { rintros ⟨N, ε⟩ hε,
-    refine ⟨⟨Iic N, const ℕ ε⟩, ⟨finite_Iic _, λ _ _, hε⟩, _⟩,
-    intros f hf,
-    rw mem_Inter₂ at hf,
-    exact hf }
+  intros i ε δ h, 
+  exact Inter_mono (λ hi, preimage_mono $ metric.ball_subset_ball h)
 end
 
 protected noncomputable def iterated_fderivL {i : ℕ} (hi : (i : with_top ℕ) ≤ n) : 
@@ -255,9 +232,52 @@ end any_field
 
 section real
 
-variables {E F : Type*} [normed_group E] [normed_group F] [normed_space ℝ E] [normed_space ℝ F] 
+open_locale pointwise
+
+variables {E F G : Type*} [normed_group E] [normed_group F] [normed_group G] 
+  [normed_space ℝ E] [normed_space ℝ F] [normed_space ℝ G]
   {n : with_top ℕ} {f g : B^n⟮E, F; ℝ⟯} {x : E}
 
+--protected lemma has_basis_zero_homotethy : (𝓝 0 : filter $ B^n⟮E, F; ℝ⟯).has_basis 
+--  (λ Nε : ℕ × ℝ, 0 < Nε.2) (λ Nε, Nε.2 • {f | ∀ (i : ℕ) (hiN : i ≤ Nε.1) 
+--    (hi : (i : with_top ℕ) ≤ n) , ∥f.iterated_fderiv hi∥ < 1}) :=
+--begin
+--  refine bounded_times_cont_diff_map.has_basis_zero.to_has_basis _ _,
+--  { rintros ⟨N, ε⟩ hε,
+--    refine ⟨⟨N, 1/ε⟩, one_div_pos.mpr hε, _⟩,
+--    change _ • _ ⊆ _,
+--    rw set_smul_subset_iff₀, }
+--  
+--end
+
+lemma linear_map_continuous_iff (T : B^n⟮E, F; ℝ⟯ →ₗ[ℝ] G) : 
+  continuous T ↔ ∃ (p : ℕ), ∃ C > 0, ∀ f : B^n⟮E, F; ℝ⟯, 
+    ∥T f∥ ≤ C * (⨆ (i : ℕ) (hip : i ≤ p) (hin : ↑i ≤ n), ∥f.iterated_fderiv hin∥) :=
+begin
+  sorry
+end
+
+lemma goal (T : B^n⟮E, F; ℝ⟯ →ₗ[ℝ] G) : 
+  continuous T ↔ ∃ (p : ℕ), ∃ C > 0, ∀ f : B^n⟮E, F; ℝ⟯, 
+    ∥T f∥ ≤ C * (⨆ (i ≤ p) (hin : ↑i ≤ n) (x : E), ∥iterated_fderiv ℝ i f x∥) :=
+begin
+  sorry
+end
+
+lemma bar (T : B^n⟮E, F; ℝ⟯ →ₗ[ℝ] G) : 
+  continuous_at T 0 ↔ ∃ (p : ℕ), ∃ C > 0, ∀ f : B^n⟮E, F; ℝ⟯, 
+    ∥T f∥ ≤ C * (⨆ (i : ℕ) (hip : i ≤ p) (hin : ↑i ≤ n), ∥f.iterated_fderiv hin∥) :=
+begin
+  rw [continuous_at, map_zero, 
+      bounded_times_cont_diff_map.has_basis_zero.tendsto_iff metric.nhds_basis_ball],
+  split,
+  { intro H,
+    rcases H 1 zero_lt_one with ⟨⟨p, ε⟩, hε, H'⟩,
+    refine ⟨p, ε⁻¹, inv_pos.mpr hε, λ f, _⟩,
+    sorry },
+  { rintros ⟨p, C, hC, H⟩ ε hε,
+    sorry }
+end
 
 end real
 

@@ -133,6 +133,16 @@ begin
           forall_congr (λ K, continuous_iff_le_induced.symm),
 end
 
+lemma goal₂ {G : Type*} [normed_group G] [normed_space ℝ G] (T : Cc^n⟮Ω, E, F; ℝ⟯ →ₗ[ℝ] G) : 
+  continuous T ↔ ∀ K : compacts Ω, ∃ (p : ℕ), ∃ C > 0, ∀ f : Cc^n⟮Ω, E, F; ℝ⟯, 
+    ∥T f∥ ≤ C * (⨆ (i ≤ p) (hin : ↑i ≤ n) (x ∈ K), ∥iterated_fderiv ℝ i f x∥) :=
+begin
+  rw [goal, forall_congr],
+  intros K,
+  rw times_cont_diff_map_supported_in.goal,
+  sorry
+end
+
 end real
 
 end test_function
