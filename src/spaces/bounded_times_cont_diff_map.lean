@@ -257,7 +257,7 @@ begin
   sorry
 end
 
-lemma linear_map_continuous_iff (T : B^n⟮E, F; ℝ⟯ →ₗ[ℝ] G) : 
+lemma continuous_iff_of_linear (T : B^n⟮E, F; ℝ⟯ →ₗ[ℝ] G) : 
   continuous T ↔ ∃ (p : ℕ), ∃ C > 0, ∀ f : B^n⟮E, F; ℝ⟯, 
     ∥T f∥ ≤ C * (⨆ (i ≤ p) (hin : ↑i ≤ n) (x : E), ∥iterated_fderiv ℝ i f x∥) :=
 begin

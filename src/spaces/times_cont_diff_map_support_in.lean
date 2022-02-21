@@ -76,9 +76,9 @@ variables {E F G : Type*} [normed_group E] [normed_group F] [normed_group G]
   [normed_space ℝ E] [normed_space ℝ F] [normed_space ℝ G] {K : compacts E} 
   {n : with_top ℕ} {f g : times_cont_diff_map_supported_in ℝ E F K n} {x : E}
 
-lemma goal (T : times_cont_diff_map_supported_in ℝ E F K n →ₗ[ℝ] G) : 
+lemma continuous_iff_of_linear (T : times_cont_diff_map_supported_in ℝ E F K n →ₗ[ℝ] G) : 
   continuous T ↔ ∃ (p : ℕ), ∃ C > 0, ∀ f : times_cont_diff_map_supported_in ℝ E F K n, 
-    ∥T f∥ ≤ C * (⨆ (i ≤ p) (hin : ↑i ≤ n) (x ∈ K), ∥iterated_fderiv ℝ i f x∥) :=
+    ∥T f∥ ≤ C * (⨆ (i ≤ p) (hin : ↑i ≤ n) (x : E), ∥iterated_fderiv ℝ i f x∥) :=
 begin
   sorry
 end
