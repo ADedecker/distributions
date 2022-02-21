@@ -205,7 +205,7 @@ end
 
 attribute [instance] bounded_times_cont_diff_map.topology
 
-protected lemma has_basis_zero' : (𝓝 0 : filter $ B^n⟮E, F; 𝕜⟯).has_basis 
+protected lemma has_basis_zero : (𝓝 0 : filter $ B^n⟮E, F; 𝕜⟯).has_basis 
   (λ Nε : ℕ × ℝ, 0 < Nε.2) (λ Nε, ⋂ (i : ℕ) (hiN : i ≤ Nε.1) (hi : ↑i ≤ n), 
     bounded_times_cont_diff_map.iterated_fderiv hi ⁻¹' metric.ball 0 Nε.2) :=
 begin
@@ -250,14 +250,14 @@ variables {E F G : Type*} [normed_group E] [normed_group F] [normed_group G]
 --  
 --end
 
-lemma linear_map_continuous_iff (T : B^n⟮E, F; ℝ⟯ →ₗ[ℝ] G) : 
+lemma goal (T : B^n⟮E, F; ℝ⟯ →ₗ[ℝ] G) : 
   continuous T ↔ ∃ (p : ℕ), ∃ C > 0, ∀ f : B^n⟮E, F; ℝ⟯, 
     ∥T f∥ ≤ C * (⨆ (i : ℕ) (hip : i ≤ p) (hin : ↑i ≤ n), ∥f.iterated_fderiv hin∥) :=
 begin
   sorry
 end
 
-lemma goal (T : B^n⟮E, F; ℝ⟯ →ₗ[ℝ] G) : 
+lemma linear_map_continuous_iff (T : B^n⟮E, F; ℝ⟯ →ₗ[ℝ] G) : 
   continuous T ↔ ∃ (p : ℕ), ∃ C > 0, ∀ f : B^n⟮E, F; ℝ⟯, 
     ∥T f∥ ≤ C * (⨆ (i ≤ p) (hin : ↑i ≤ n) (x : E), ∥iterated_fderiv ℝ i f x∥) :=
 begin

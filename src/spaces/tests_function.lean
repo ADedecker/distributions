@@ -98,9 +98,8 @@ protected noncomputable def tmp_topology : topological_space (Cc^n⟮Ω, E, F; �
 local notation `𝓣₀` := test_function.tmp_topology
 
 protected def topology : topological_space (Cc^n⟮Ω, E, F; ℝ⟯) := 
-⨅ (t : topological_space Cc^n⟮Ω, E, F; ℝ⟯) (h : 𝓣₀ ≤ t)
-  (h₁ : @topological_add_group _ t _) (h₂ : @has_continuous_smul ℝ _ _ _ t) 
-  (h₃ : @locally_convex_space ℝ _ _ _ _ t), t
+Inf { t | 𝓣₀ ≤ t ∧ @topological_add_group _ t _ ∧ @has_continuous_smul ℝ _ _ _ t ∧ 
+      @locally_convex_space ℝ _ _ _ _ t }
 
 local notation `𝓣` := test_function.topology
 
