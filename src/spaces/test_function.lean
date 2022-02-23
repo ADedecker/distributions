@@ -1,5 +1,4 @@
 import spaces.cont_diff_map_support_in
-import ..tsupport
 
 open filter topological_space set
 open_locale topological_space filter pointwise bounded_cont_diff_map
@@ -58,7 +57,6 @@ variables {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜] [normed_group E] [n
 
 instance : add_comm_group (Cc^n⟮Ω, E, F; 𝕜⟯) := submodule.add_comm_group _
 instance : module 𝕜 (Cc^n⟮Ω, E, F; 𝕜⟯) := submodule.module _
-
 instance : has_coe_to_fun (Cc^n⟮Ω, E, F; 𝕜⟯) (λ _, E → F) := ⟨λ f, f.1⟩
 
 @[ext] lemma ext (H : ∀x, f x = g x) : f = g :=
@@ -75,6 +73,23 @@ f.2.2
 lemma eventually_eq_cocompact (f : Cc^n⟮Ω, E, F; 𝕜⟯) : 
   f =ᶠ[cocompact E] 0 :=
 cocompact_le_cocompact_in Ω f.2.2
+
+lemma has_compact_support (f : Cc^n⟮Ω, E, F; 𝕜⟯) :
+  has_compact_support f :=
+begin
+  rw [has_compact_support_iff_eventually_eq, coclosed_compact_eq_cocompact],
+  exact f.eventually_eq_cocompact
+end
+
+def tsupport' (f : Cc^n⟮Ω, E, F; 𝕜⟯) :
+  compacts E :=
+⟨tsupport f, f.has_compact_support⟩
+
+lemma tsupport'_subset (f : Cc^n⟮Ω, E, F; 𝕜⟯) :
+  ↑f.tsupport' ⊆ Ω :=
+begin
+  sorry
+end
 
 variables (𝕜) (F) (n)
 
@@ -216,7 +231,7 @@ end
 
 noncomputable def to_bounded_cont_diff_map (f : Cc^n⟮Ω, E, F; ℝ⟯) : 
   B^n⟮E,F;ℝ⟯ :=
-⟨f, f.cont_diff, sorry⟩
+(f.to_support_in ℝ F n (λ x, )).to_bounded_cont_diff_map
 
 noncomputable def to_bounded_cont_diff_mapₗ : 
   Cc^n⟮Ω, E, F; ℝ⟯ →ₗ[ℝ] B^n⟮E ,F ; ℝ⟯ := 

@@ -177,8 +177,6 @@ private noncomputable def tmp_topology₁ (i : ℕ) :
 protected noncomputable def topology : topological_space (B^n⟮E, F; 𝕜⟯) := 
   ⨅ (i : ℕ) (hi : (i : with_top ℕ) ≤ n), (tmp_topology₀ i hi)
 
---instance {𝕜' : Type*} [normed_linear_ordered_field 𝕜'] : locally_convex_space 𝕜' (B^n⟮E, F; 𝕜'⟯) :=
-
 private lemma has_basis_zero₀ (i : ℕ) (hi : (i : with_top ℕ) ≤ n) : 
   (@nhds B^n⟮E, F; 𝕜⟯ (tmp_topology₀ i hi) 0).has_basis (λ ε : ℝ, 0 < ε)
   (λ ε, bounded_cont_diff_map.iterated_fderiv hi ⁻¹' metric.ball 0 ε) :=
