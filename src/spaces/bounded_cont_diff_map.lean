@@ -1,4 +1,4 @@
-import analysis.calculus.times_cont_diff
+import analysis.calculus.cont_diff
 import topology.continuous_function.bounded
 import analysis.seminorm
 import ..bases
@@ -10,8 +10,8 @@ section prelim
 
 lemma iterated_fderiv_add {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜] 
   [normed_group E] [normed_group F] [normed_space 𝕜 E] [normed_space 𝕜 F] 
-  {nf ng : with_top ℕ} {i : ℕ} {f g : E → F} (hf : times_cont_diff 𝕜 nf f)
-  (hg : times_cont_diff 𝕜 ng g) (hif : (i : with_top ℕ) ≤ nf) 
+  {nf ng : with_top ℕ} {i : ℕ} {f g : E → F} (hf : cont_diff 𝕜 nf f)
+  (hg : cont_diff 𝕜 ng g) (hif : (i : with_top ℕ) ≤ nf) 
   (hig : (i : with_top ℕ) ≤ ng) : 
 iterated_fderiv 𝕜 i (f + g) = (iterated_fderiv 𝕜 i f) + (iterated_fderiv 𝕜 i g) :=
 begin
@@ -23,9 +23,9 @@ begin
     have hig' : (i : with_top ℕ) < ng := 
       lt_of_lt_of_le (with_top.coe_lt_coe.mpr $ nat.lt_succ_self _) hig,
     have hdf : differentiable 𝕜 (iterated_fderiv 𝕜 i f) :=
-      (times_cont_diff_iff_continuous_differentiable.mp hf).2 i hif',
+      (cont_diff_iff_continuous_differentiable.mp hf).2 i hif',
     have hdg : differentiable 𝕜 (iterated_fderiv 𝕜 i g) :=
-      (times_cont_diff_iff_continuous_differentiable.mp hg).2 i hig',
+      (cont_diff_iff_continuous_differentiable.mp hg).2 i hig',
     calc iterated_fderiv 𝕜 (i+1) (f + g) x h 
         = fderiv 𝕜 (iterated_fderiv 𝕜 i (f + g)) x (h 0) (fin.tail h) : rfl
     ... = fderiv 𝕜 (iterated_fderiv 𝕜 i f + iterated_fderiv 𝕜 i g) x (h 0) (fin.tail h) : 
@@ -38,7 +38,7 @@ end
 
 lemma iterated_fderiv_smul {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜] 
   [normed_group E] [normed_group F] [normed_space 𝕜 E] [normed_space 𝕜 F] 
-  {nf : with_top ℕ} {i : ℕ} {a : 𝕜} {f : E → F} (hf : times_cont_diff 𝕜 nf f)
+  {nf : with_top ℕ} {i : ℕ} {a : 𝕜} {f : E → F} (hf : cont_diff 𝕜 nf f)
   (hif : (i : with_top ℕ) ≤ nf) : 
 iterated_fderiv 𝕜 i (a • f) = a • (iterated_fderiv 𝕜 i f) :=
 begin
@@ -48,7 +48,7 @@ begin
     have hif' : (i : with_top ℕ) < nf := 
       lt_of_lt_of_le (with_top.coe_lt_coe.mpr $ nat.lt_succ_self _) hif,
     have hdf : differentiable 𝕜 (iterated_fderiv 𝕜 i f) :=
-      (times_cont_diff_iff_continuous_differentiable.mp hf).2 i hif',
+      (cont_diff_iff_continuous_differentiable.mp hf).2 i hif',
     calc iterated_fderiv 𝕜 (i+1) (a • f) x h
         = fderiv 𝕜 (iterated_fderiv 𝕜 i (a • f)) x (h 0) (fin.tail h) : rfl
     ... = fderiv 𝕜 (a • iterated_fderiv 𝕜 i f) x (h 0) (fin.tail h) : 
@@ -60,7 +60,7 @@ end
 
 lemma iterated_fderiv_neg {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜] 
   [normed_group E] [normed_group F] [normed_space 𝕜 E] [normed_space 𝕜 F] 
-  {nf : with_top ℕ} {i : ℕ} {f : E → F} (hf : times_cont_diff 𝕜 nf f)
+  {nf : with_top ℕ} {i : ℕ} {f : E → F} (hf : cont_diff 𝕜 nf f)
   (hif : (i : with_top ℕ) ≤ nf) : 
 iterated_fderiv 𝕜 i (-f) = -(iterated_fderiv 𝕜 i f) :=
 calc iterated_fderiv 𝕜 i (-f) 
@@ -70,29 +70,29 @@ calc iterated_fderiv 𝕜 i (-f)
 
 end prelim
 
-private def bounded_times_cont_diff_map_submodule (𝕜 E F : Type*) [nondiscrete_normed_field 𝕜] 
+private def bounded_cont_diff_map_submodule (𝕜 E F : Type*) [nondiscrete_normed_field 𝕜] 
   [normed_group E] [normed_group F] [normed_space 𝕜 E] [normed_space 𝕜 F] 
   (n : with_top ℕ) : submodule 𝕜 (E → F) :=
-{ carrier := {f | times_cont_diff 𝕜 n f ∧ ∀ (i : ℕ), ↑i ≤ n → 
+{ carrier := {f | cont_diff 𝕜 n f ∧ ∀ (i : ℕ), ↑i ≤ n → 
                   ∃ C, ∀ x, ∥iterated_fderiv 𝕜 i f x∥ ≤ C },
-  zero_mem' := ⟨times_cont_diff_zero_fun, λ i hi, ⟨0, λ x, 
+  zero_mem' := ⟨cont_diff_zero_fun, λ i hi, ⟨0, λ x, 
     by rw [pi.zero_def, iterated_fderiv_within_zero_fun, pi.zero_apply, norm_zero]⟩⟩,
   add_mem' := λ f g hf hg, ⟨hf.1.add hg.1, λ i hi, 
     let ⟨Cf, hCf⟩ := hf.2 i hi, ⟨Cg, hCg⟩ := hg.2 i hi in ⟨Cf + Cg, λ x, 
     by {rw [iterated_fderiv_add hf.1 hg.1 hi hi], exact norm_add_le_of_le (hCf x) (hCg x)}⟩⟩,
-  smul_mem' := λ c f hf, ⟨times_cont_diff_const.smul hf.1, λ i hi, 
+  smul_mem' := λ c f hf, ⟨cont_diff_const.smul hf.1, λ i hi, 
     let ⟨C, hC⟩ := hf.2 i hi in ⟨∥c∥ * C, λ x, 
     by {rw [iterated_fderiv_smul hf.1 hi, pi.smul_apply, norm_smul],
         exact mul_le_mul_of_nonneg_left (hC x) (norm_nonneg _) }⟩⟩ }
 
-def bounded_times_cont_diff_map (𝕜 E F : Type*) [nondiscrete_normed_field 𝕜] 
+def bounded_cont_diff_map (𝕜 E F : Type*) [nondiscrete_normed_field 𝕜] 
   [normed_group E] [normed_group F] [normed_space 𝕜 E] [normed_space 𝕜 F] 
-  (n : with_top ℕ) := ↥(bounded_times_cont_diff_map_submodule 𝕜 E F n)
+  (n : with_top ℕ) := ↥(bounded_cont_diff_map_submodule 𝕜 E F n)
 
-localized "notation `B^`n`⟮`E`,`F`;`𝕜`⟯` := bounded_times_cont_diff_map 𝕜 E F n" in 
-  bounded_times_cont_diff_map
+localized "notation `B^`n`⟮`E`,`F`;`𝕜`⟯` := bounded_cont_diff_map 𝕜 E F n" in 
+  bounded_cont_diff_map
 
-namespace bounded_times_cont_diff_map
+namespace bounded_cont_diff_map
 
 section any_field
 
@@ -111,8 +111,8 @@ lemma bounded (f : B^n⟮E, F; 𝕜⟯) {i : ℕ} (hi : (i : with_top ℕ) ≤ n
   ∃ C, ∀ x, ∥iterated_fderiv 𝕜 i f x∥ ≤ C :=
 f.2.2 i hi
 
-lemma times_cont_diff (f : B^n⟮E, F; 𝕜⟯) :
-  times_cont_diff 𝕜 n f :=
+lemma cont_diff (f : B^n⟮E, F; 𝕜⟯) :
+  cont_diff 𝕜 n f :=
 f.2.1
 
 @[simp] lemma coe_zero : ((0 : B^n⟮E, F; 𝕜⟯) : E → F) = 0 := rfl
@@ -130,11 +130,11 @@ protected noncomputable def iterated_fderiv {i : ℕ} (hi : (i : with_top ℕ) �
 { to_fun := iterated_fderiv 𝕜 i f,
   continuous_to_fun := 
   begin
-    have := f.times_cont_diff,
-    rw times_cont_diff_iff_continuous_differentiable at this,
+    have := f.cont_diff,
+    rw cont_diff_iff_continuous_differentiable at this,
     exact this.1 i hi
   end,
-  bounded' := 
+  map_bounded' := 
   begin
     rcases f.bounded hi with ⟨C, hC⟩,
     use C + C,
@@ -147,7 +147,7 @@ protected noncomputable def iterated_fderiv {i : ℕ} (hi : (i : with_top ℕ) �
 begin
   ext x : 1,
   change iterated_fderiv 𝕜 i (f + g) x = iterated_fderiv 𝕜 i f x + iterated_fderiv 𝕜 i g x,
-  rw iterated_fderiv_add f.times_cont_diff g.times_cont_diff hi hi,
+  rw iterated_fderiv_add f.cont_diff g.cont_diff hi hi,
   refl
 end
 
@@ -156,19 +156,19 @@ end
 begin
   ext x : 1,
   change iterated_fderiv 𝕜 i (r • f) x = r • iterated_fderiv 𝕜 i f x,
-  rw iterated_fderiv_smul f.times_cont_diff hi,
+  rw iterated_fderiv_smul f.cont_diff hi,
   refl
 end
 
 protected noncomputable def iterated_fderivₗ {i : ℕ} (hi : (i : with_top ℕ) ≤ n) :
   B^n⟮E, F; 𝕜⟯ →ₗ[𝕜] (E →ᵇ (E [×i]→L[𝕜] F)) :=
 { to_fun := λ f, f.iterated_fderiv hi,
-  map_add' := λ f g, bounded_times_cont_diff_map.iterated_fderiv_add hi,
-  map_smul' :=λ r f, bounded_times_cont_diff_map.iterated_fderiv_smul hi }
+  map_add' := λ f g, bounded_cont_diff_map.iterated_fderiv_add hi,
+  map_smul' :=λ r f, bounded_cont_diff_map.iterated_fderiv_smul hi }
 
 private noncomputable def tmp_topology₀ (i : ℕ) (hi : (i : with_top ℕ) ≤ n) : 
   topological_space (B^n⟮E, F; 𝕜⟯) :=
-topological_space.induced (bounded_times_cont_diff_map.iterated_fderivₗ hi) infer_instance
+topological_space.induced (bounded_cont_diff_map.iterated_fderivₗ hi) infer_instance
 
 private noncomputable def tmp_topology₁ (i : ℕ) : 
   topological_space (B^n⟮E, F; 𝕜⟯) :=
@@ -181,7 +181,7 @@ protected noncomputable def topology : topological_space (B^n⟮E, F; 𝕜⟯) :
 
 private lemma has_basis_zero₀ (i : ℕ) (hi : (i : with_top ℕ) ≤ n) : 
   (@nhds B^n⟮E, F; 𝕜⟯ (tmp_topology₀ i hi) 0).has_basis (λ ε : ℝ, 0 < ε)
-  (λ ε, bounded_times_cont_diff_map.iterated_fderiv hi ⁻¹' metric.ball 0 ε) :=
+  (λ ε, bounded_cont_diff_map.iterated_fderiv hi ⁻¹' metric.ball 0 ε) :=
 begin
   rw nhds_induced,
   refine (has_basis.comap _ (metric.nhds_basis_ball)).to_has_basis _ _;
@@ -193,7 +193,7 @@ end
 
 private lemma has_basis_zero₁ (i : ℕ) : 
   (@nhds B^n⟮E, F; 𝕜⟯ (tmp_topology₁ i) 0).has_basis (λ ε : ℝ, 0 < ε)
-  (λ ε, ⋂ (hi : ↑i ≤ n), bounded_times_cont_diff_map.iterated_fderiv hi ⁻¹' metric.ball 0 ε) :=
+  (λ ε, ⋂ (hi : ↑i ≤ n), bounded_cont_diff_map.iterated_fderiv hi ⁻¹' metric.ball 0 ε) :=
 begin
   rw [nhds_infi, has_basis_iff],
   by_cases hi : (i : with_top ℕ) ≤ n,
@@ -203,11 +203,11 @@ begin
     simp [hi, univ_subset_iff, this] }
 end
 
-attribute [instance] bounded_times_cont_diff_map.topology
+attribute [instance] bounded_cont_diff_map.topology
 
 protected lemma has_basis_zero : (𝓝 0 : filter $ B^n⟮E, F; 𝕜⟯).has_basis 
   (λ Nε : ℕ × ℝ, 0 < Nε.2) (λ Nε, ⋂ (i : ℕ) (hiN : i ≤ Nε.1) (hi : ↑i ≤ n), 
-    bounded_times_cont_diff_map.iterated_fderiv hi ⁻¹' metric.ball 0 Nε.2) :=
+    bounded_cont_diff_map.iterated_fderiv hi ⁻¹' metric.ball 0 Nε.2) :=
 begin
   rw nhds_infi,
   convert foo _ has_basis_zero₁,
@@ -217,7 +217,7 @@ end
 
 protected noncomputable def iterated_fderivL {i : ℕ} (hi : (i : with_top ℕ) ≤ n) : 
   (B^n⟮E, F; 𝕜⟯) →L[𝕜] (E →ᵇ (E [×i]→L[𝕜] F)) :=
-{ to_linear_map := bounded_times_cont_diff_map.iterated_fderivₗ hi,
+{ to_linear_map := bounded_cont_diff_map.iterated_fderivₗ hi,
   cont := continuous_infi_dom (continuous_infi_dom continuous_induced_dom) }
 
 instance : topological_add_group (B^n⟮E, F; 𝕜⟯) :=
@@ -232,10 +232,9 @@ variables (𝕜 E F n)
 
 noncomputable def to_bounded_continuous_map : 
   (B^n⟮E, F; 𝕜⟯) →L[𝕜] (E →ᵇ F) :=
-{ to_fun := λ f, ⟨⟨f, sorry⟩, sorry⟩,
-  map_add' := sorry,
-  map_smul' := sorry,
-  cont := sorry }
+(continuous_multilinear_curry_fin0 𝕜 E F).to_linear_isometry
+  .to_continuous_linear_map.comp_left_continuous_bounded E ∘L
+bounded_cont_diff_map.iterated_fderivL (zero_le _)
 
 end any_field
 
@@ -251,7 +250,7 @@ variables {E F G : Type*} [normed_group E] [normed_group F] [normed_group G]
 --  (λ Nε : ℕ × ℝ, 0 < Nε.2) (λ Nε, Nε.2 • {f | ∀ (i : ℕ) (hiN : i ≤ Nε.1) 
 --    (hi : (i : with_top ℕ) ≤ n) , ∥f.iterated_fderiv hi∥ < 1}) :=
 --begin
---  refine bounded_times_cont_diff_map.has_basis_zero.to_has_basis _ _,
+--  refine bounded_cont_diff_map.has_basis_zero.to_has_basis _ _,
 --  { rintros ⟨N, ε⟩ hε,
 --    refine ⟨⟨N, 1/ε⟩, one_div_pos.mpr hε, _⟩,
 --    change _ • _ ⊆ _,
@@ -278,7 +277,7 @@ lemma bar (T : B^n⟮E, F; ℝ⟯ →ₗ[ℝ] G) :
     ∥T f∥ ≤ C * (⨆ (i : ℕ) (hip : i ≤ p) (hin : ↑i ≤ n), ∥f.iterated_fderiv hin∥) :=
 begin
   rw [continuous_at, map_zero, 
-      bounded_times_cont_diff_map.has_basis_zero.tendsto_iff metric.nhds_basis_ball],
+      bounded_cont_diff_map.has_basis_zero.tendsto_iff metric.nhds_basis_ball],
   split,
   { intro H,
     rcases H 1 zero_lt_one with ⟨⟨p, ε⟩, hε, H'⟩,
@@ -290,4 +289,4 @@ end
 
 end real
 
-end bounded_times_cont_diff_map
+end bounded_cont_diff_map

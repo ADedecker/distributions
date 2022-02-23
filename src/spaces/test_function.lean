@@ -1,8 +1,8 @@
-import spaces.times_cont_diff_map_support_in
+import spaces.cont_diff_map_support_in
 import ..tsupport
 
 open filter topological_space set
-open_locale topological_space filter pointwise bounded_times_cont_diff_map
+open_locale topological_space filter pointwise bounded_cont_diff_map
 
 section prelim
 
@@ -32,12 +32,12 @@ end prelim
 private def test_function_submodule (𝕜 E F : Type*) [nondiscrete_normed_field 𝕜] 
   [normed_group E] [normed_group F] [normed_space 𝕜 E] [normed_space 𝕜 F] (Ω : set E) 
   (n : with_top ℕ) : submodule 𝕜 (E → F) :=
-{ carrier := {f | times_cont_diff 𝕜 n f ∧ f =ᶠ[cocompact_in Ω] 0}, -- TODO !!!!!!
-  zero_mem' := ⟨times_cont_diff_zero_fun, by refl⟩,
+{ carrier := {f | cont_diff 𝕜 n f ∧ f =ᶠ[cocompact_in Ω] 0}, -- TODO !!!!!!
+  zero_mem' := ⟨cont_diff_zero_fun, by refl⟩,
   add_mem' := λ f g hf hg, ⟨hf.1.add hg.1, 
     by filter_upwards [hf.2, hg.2] using λ x hfx hgx, 
       by rw [pi.add_apply, hfx, hgx, pi.zero_apply, add_zero]⟩,
-  smul_mem' := λ c f hf, ⟨times_cont_diff_const.smul hf.1, 
+  smul_mem' := λ c f hf, ⟨cont_diff_const.smul hf.1, 
     by filter_upwards [hf.2] using λ x hfx, 
       by rw [pi.smul_apply, hfx, pi.zero_apply, smul_zero]⟩ }
 
@@ -64,8 +64,8 @@ instance : has_coe_to_fun (Cc^n⟮Ω, E, F; 𝕜⟯) (λ _, E → F) := ⟨λ f,
 @[ext] lemma ext (H : ∀x, f x = g x) : f = g :=
 by {ext, exact H x}
 
-lemma times_cont_diff (f : Cc^n⟮Ω, E, F; 𝕜⟯) :
-  times_cont_diff 𝕜 n f :=
+lemma cont_diff (f : Cc^n⟮Ω, E, F; 𝕜⟯) :
+  cont_diff 𝕜 n f :=
 f.2.1
 
 lemma eventually_eq_cocompact_in (f : Cc^n⟮Ω, E, F; 𝕜⟯) : 
@@ -79,20 +79,20 @@ cocompact_le_cocompact_in Ω f.2.2
 variables (𝕜) (F) (n)
 
 def of_support_in (K : compacts E) (hK : ↑K ⊆ Ω)
-  (f : times_cont_diff_map_supported_in 𝕜 E F K n) : 
+  (f : cont_diff_map_supported_in 𝕜 E F K n) : 
 Cc^n⟮Ω, E, F; 𝕜⟯ :=
-⟨f, f.times_cont_diff, (has_basis_cocompact_in Ω).mem_iff.mpr ⟨K, ⟨K.2, hK⟩, f.supported_in⟩⟩
+⟨f, f.cont_diff, (has_basis_cocompact_in Ω).mem_iff.mpr ⟨K, ⟨K.2, hK⟩, f.supported_in⟩⟩
 
 def to_support_in {K : set E} (f : Cc^n⟮Ω, E, F; 𝕜⟯) (hK : ∀ x ∉ K, f x = 0) :
-  times_cont_diff_map_supported_in 𝕜 E F K n :=
-⟨f, f.times_cont_diff, hK⟩
+  cont_diff_map_supported_in 𝕜 E F K n :=
+⟨f, f.cont_diff, hK⟩
 
 def of_support_inₗ (K : compacts E) (hK : ↑K ⊆ Ω) :
-  times_cont_diff_map_supported_in 𝕜 E F K n 
+  cont_diff_map_supported_in 𝕜 E F K n 
     →ₗ[𝕜] Cc^n⟮Ω, E, F; 𝕜⟯ :=
 { to_fun := of_support_in 𝕜 F n K hK,
-  map_add' := sorry,
-  map_smul' := sorry }
+  map_add' := λ f g, by ext; refl,
+  map_smul' := λ f g, by ext; refl }
 
 end general
 
@@ -155,7 +155,7 @@ lemma continuous_iff_of_linear {G : Type*} [tG : topological_space G] [add_comm_
   continuous φ ↔ ∀ (K : compacts E) (hK : ↑K ⊆ Ω), continuous (φ ∘ₗ of_support_inₗ ℝ F n K hK) :=
 begin
   let tC : Π (K : compacts E) (hK : ↑K ⊆ Ω), topological_space 
-    (times_cont_diff_map_supported_in ℝ E F K n) :=
+    (cont_diff_map_supported_in ℝ E F K n) :=
     infer_instance,
   calc  continuous φ 
       ↔ 𝓣 ≤ tG.induced φ : continuous_iff_le_induced
@@ -183,7 +183,7 @@ begin
   intros K,
   rw forall_congr,
   intros hK,
-  rw [times_cont_diff_map_supported_in.continuous_iff_of_linear, exists_congr],
+  rw [cont_diff_map_supported_in.continuous_iff_of_linear, exists_congr],
   intros p,
   refl
 end
@@ -214,19 +214,19 @@ end
 
 -- TODO : formulate this in term of bounded subsets
 
-noncomputable def to_bounded_times_cont_diff_map (f : Cc^n⟮Ω, E, F; ℝ⟯) : 
+noncomputable def to_bounded_cont_diff_map (f : Cc^n⟮Ω, E, F; ℝ⟯) : 
   B^n⟮E,F;ℝ⟯ :=
-⟨f, f.times_cont_diff, sorry⟩
+⟨f, f.cont_diff, sorry⟩
 
-noncomputable def to_bounded_times_cont_diff_mapₗ : 
+noncomputable def to_bounded_cont_diff_mapₗ : 
   Cc^n⟮Ω, E, F; ℝ⟯ →ₗ[ℝ] B^n⟮E ,F ; ℝ⟯ := 
-{ to_fun := to_bounded_times_cont_diff_map,
+{ to_fun := to_bounded_cont_diff_map,
   map_add' := sorry,
   map_smul' := sorry }
 
-noncomputable def to_bounded_times_cont_diff_mapL : 
+noncomputable def to_bounded_cont_diff_mapL : 
   Cc^n⟮Ω, E, F; ℝ⟯ →L[ℝ] B^n⟮E ,F ; ℝ⟯ := 
-{ to_linear_map := to_bounded_times_cont_diff_mapₗ,
+{ to_linear_map := to_bounded_cont_diff_mapₗ,
   cont := sorry }
 
 end real
