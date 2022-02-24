@@ -1,7 +1,6 @@
 import spaces.bounded_cont_diff_map
 import analysis.normed.group.basic
 import measure_theory.function.lp_space
-import ..compacts
 
 open topological_space function measure_theory set filter
 open_locale bounded_cont_diff_map topological_space ennreal bounded_continuous_function
