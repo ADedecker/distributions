@@ -22,28 +22,42 @@ noncomputable def dirac (x : E) : 𝓓' Ω ℝ n :=
 
 @[simp] lemma dirac_apply (x : E) (f : Cc^n⟮Ω, E, ℝ; ℝ⟯) : dirac Ω n x f = f x := rfl
 
-noncomputable def dirac' (x : E) : Cc^n⟮Ω, E, ℝ; ℝ⟯ →L[ℝ] ℝ :=
-let tmp : Cc^n⟮Ω, E, ℝ; ℝ⟯ →ₗ[ℝ] ℝ :=
-  { to_fun := λ f, f x,
-    map_add' := λ f g, rfl,
-    map_smul' := λ c f, rfl } in
-{ to_linear_map := tmp,
-  cont :=
-  begin
-    change continuous tmp,
-    rw test_function.continuous_iff_of_linear_of_normed_codomain tmp,
-    intros K hK,
-    refine ⟨0, 1, zero_lt_one, λ f hf, _⟩,
-    change ∥f x∥ ≤ _,
-    rw [one_mul],
-    sorry,
-  end }
+--noncomputable def dirac' (x : E) : Cc^n⟮Ω, E, ℝ; ℝ⟯ →L[ℝ] ℝ :=
+--let tmp : Cc^n⟮Ω, E, ℝ; ℝ⟯ →ₗ[ℝ] ℝ :=
+--  { to_fun := λ f, f x,
+--    map_add' := λ f g, rfl,
+--    map_smul' := λ c f, rfl } in
+--{ to_linear_map := tmp,
+--  cont :=
+--  begin
+--    change continuous tmp,
+--    rw test_function.continuous_iff_of_linear_of_normed_codomain tmp,
+--    intros K hK,
+--    refine ⟨0, 1, zero_lt_one, λ f hf, _⟩,
+--    change ∥f x∥ ≤ _,
+--    rw [one_mul],
+--    sorry,
+--  end }
+--
 
+noncomputable def of_measure [measurable_space E] [opens_measurable_space E] 
+  (μ : measure E) [is_finite_measure_on_compacts μ] : 
+  𝓓' Ω ℝ n := 
+(L1.integral_clm) ∘L (test_function.to_Lp 1 μ)
 
+@[simp] lemma of_measure_apply [measurable_space E] [opens_measurable_space E] 
+  (μ : measure E) [is_finite_measure_on_compacts μ] (f : Cc^n⟮Ω, E, ℝ; ℝ⟯) : 
+  of_measure Ω n μ f = ∫ x : E, f x ∂μ := 
+by rw [of_measure, integral_eq f (f.integrable μ), L1.integral_eq]; refl
 
---noncomputable def of_measure [measurable_space E] (x : E) (μ : measure E) : 
---  𝓓' Ω ℝ n := 
---  (L1.integral_clm) ∘L 
---  --(bounded_continuous_function.to_Lp 1 μ)
+noncomputable def dirac' [measurable_space E] [opens_measurable_space E] (x : E) : 𝓓' Ω ℝ n := 
+  of_measure Ω n (measure.dirac x)
+
+lemma dirac_eq_dirac' [measurable_space E] [opens_measurable_space E] (x : E) : 
+  dirac Ω n x = dirac' Ω n x :=
+begin
+  ext f,
+  rw [dirac', dirac_apply, of_measure_apply, integral_dirac]
+end
 
 end distribution

@@ -1,9 +1,10 @@
 import spaces.bounded_cont_diff_map
 import analysis.normed.group.basic
+import measure_theory.function.lp_space
 import ..compacts
 
-open topological_space function
-open_locale bounded_cont_diff_map topological_space
+open topological_space function measure_theory set
+open_locale bounded_cont_diff_map topological_space ennreal
 
 section prelim
 
@@ -65,6 +66,26 @@ lemma has_compact_support_iterated_fderiv {𝕜 E F : Type*} [nondiscrete_normed
   (hif : (i : with_top ℕ) ≤ nf) : has_compact_support (iterated_fderiv 𝕜 i f) :=
 compact_of_is_closed_subset hsupp (is_closed_tsupport _) (iterated_fderiv_tsupport_subset hf hif)
 
+lemma continuous.mem_ℒp_of_has_compact_support {α E : Type*} [hα : nonempty α]
+  [topological_space α] {m : measurable_space α} [t2_space α] [opens_measurable_space α] 
+  [normed_group E] [measurable_space E] [borel_space E]
+  {f : α → E} (hf : continuous f) (hsupp : has_compact_support f)
+  (p : ℝ≥0∞) (μ : measure α) [is_finite_measure_on_compacts μ]:
+  mem_ℒp f p μ := 
+begin
+  have : bdd_above (range $ norm ∘ f),
+    from hf.norm.bdd_above_range_of_has_compact_support hsupp.norm,
+  refine mem_ℒp.of_le 
+    (mem_ℒp_indicator_const p hsupp.measurable_set (⨆ x, ∥f x∥) (or.inr hsupp.measure_lt_top.ne))
+    (hf.ae_measurable μ) (ae_of_all _ $ λ x, _),
+  rw norm_indicator_eq_indicator_norm,
+  refine set.le_indicator (λ a _, _) (λ a, _) x,
+  { rw real.norm_of_nonneg (le_csupr_of_le this hα.some (norm_nonneg _)),
+    exact le_csupr this a },
+  { intros ha,
+    simpa using not_mem_of_not_mem_closure ha }
+end
+
 end prelim
 
 private def cont_diff_map_supported_in_submodule (𝕜 E F : Type*) [nondiscrete_normed_field 𝕜] 
@@ -99,6 +120,10 @@ by {ext, exact H x}
 protected lemma cont_diff (f : cont_diff_map_supported_in 𝕜 E F K n) :
   cont_diff 𝕜 n f :=
 f.2.1
+
+protected lemma continuous (f : cont_diff_map_supported_in 𝕜 E F K n) :
+  continuous f :=
+f.cont_diff.continuous
 
 lemma supported_in (f : cont_diff_map_supported_in 𝕜 E F K n) : 
   ∀ x ∉ K, f x = 0 :=
@@ -144,6 +169,25 @@ topological_add_group_induced _
 
 instance : has_continuous_smul 𝕜 (cont_diff_map_supported_in 𝕜 E F K n) :=
 has_continuous_smul_induced _
+
+lemma mem_ℒp (f : cont_diff_map_supported_in 𝕜 E F K n) 
+  [measurable_space 𝕜] [opens_measurable_space 𝕜] 
+  {m : measurable_space E} [opens_measurable_space E] [measurable_space F] 
+  [second_countable_topology F] [borel_space F] (p : ℝ≥0∞) (μ : measure E) [fact (1 ≤ p)]
+  [is_finite_measure_on_compacts μ] : mem_ℒp f p μ :=
+f.continuous.mem_ℒp_of_has_compact_support f.has_compact_support p μ
+
+noncomputable def to_Lp [measurable_space 𝕜] [opens_measurable_space 𝕜] 
+  {m : measurable_space E} [opens_measurable_space E] [measurable_space F] 
+  [second_countable_topology F] [borel_space F] (p : ℝ≥0∞) (μ : measure E) [fact (1 ≤ p)]
+  [is_finite_measure_on_compacts μ] : 
+  (cont_diff_map_supported_in 𝕜 E F K n) →L[𝕜] (Lp F p μ) :=
+{ to_fun := λ f, (f.mem_ℒp p μ).to_Lp f,
+  map_add' := λ f g, (f.mem_ℒp p μ).to_Lp_add (g.mem_ℒp p μ),
+  map_smul' := λ c f, (f.mem_ℒp p μ).to_Lp_const_smul c,
+  cont := sorry }  
+  -- Proof 1 : Consequence of `continuous_iff_of_linear` (only in the real case ?)
+  -- Proof 2 : Equip `cont_diff_map_supported_in 𝕜 E F K n 0` with a norm and factor through it
 
 end compact
 

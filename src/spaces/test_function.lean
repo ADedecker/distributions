@@ -1,7 +1,8 @@
 import spaces.cont_diff_map_support_in
+import measure_theory.function.l1_space
 
-open filter topological_space set
-open_locale topological_space filter pointwise bounded_cont_diff_map
+open filter topological_space set measure_theory
+open_locale topological_space filter pointwise bounded_cont_diff_map ennreal
 
 section prelim
 
@@ -65,6 +66,10 @@ by {ext, exact H x}
 lemma cont_diff (f : Cc^n⟮Ω, E, F; 𝕜⟯) :
   cont_diff 𝕜 n f :=
 f.2.1
+
+protected lemma continuous (f : Cc^n⟮Ω, E, F; 𝕜⟯) :
+  continuous f :=
+f.cont_diff.continuous
 
 lemma eventually_eq_cocompact_in (f : Cc^n⟮Ω, E, F; 𝕜⟯) : 
   f =ᶠ[cocompact_in Ω] 0 :=
@@ -243,6 +248,41 @@ noncomputable def to_bounded_cont_diff_mapL :
   Cc^n⟮Ω, E, F; ℝ⟯ →L[ℝ] B^n⟮E ,F ; ℝ⟯ := 
 { to_linear_map := to_bounded_cont_diff_mapₗ,
   cont := sorry }
+
+lemma mem_ℒp (f : Cc^n⟮Ω, E, F; ℝ⟯) 
+  {m : measurable_space E} [opens_measurable_space E] [measurable_space F] 
+  [second_countable_topology F] [borel_space F] (p : ℝ≥0∞) (μ : measure E) [fact (1 ≤ p)]
+  [is_finite_measure_on_compacts μ] : mem_ℒp f p μ :=
+f.continuous.mem_ℒp_of_has_compact_support f.has_compact_support p μ
+
+lemma integrable (f : Cc^n⟮Ω, E, F; ℝ⟯) 
+  {m : measurable_space E} [opens_measurable_space E] [measurable_space F] 
+  [second_countable_topology F] [borel_space F] (μ : measure E)
+  [is_finite_measure_on_compacts μ] : integrable f μ :=
+mem_ℒp_one_iff_integrable.mp (f.mem_ℒp 1 μ)
+
+noncomputable def to_Lpₗ
+  {m : measurable_space E} [opens_measurable_space E] [measurable_space F] 
+  [second_countable_topology F] [borel_space F] (p : ℝ≥0∞) (μ : measure E) [fact (1 ≤ p)]
+  [is_finite_measure_on_compacts μ] : 
+  (Cc^n⟮Ω, E, F; ℝ⟯) →ₗ[ℝ] (Lp F p μ) :=
+{ to_fun := λ f, (f.mem_ℒp p μ).to_Lp f,
+  map_add' := λ f g, (f.mem_ℒp p μ).to_Lp_add (g.mem_ℒp p μ),
+  map_smul' := λ c f, (f.mem_ℒp p μ).to_Lp_const_smul c }  
+
+noncomputable def to_Lp
+  {m : measurable_space E} [opens_measurable_space E] [measurable_space F] 
+  [second_countable_topology F] [borel_space F] (p : ℝ≥0∞) (μ : measure E) [fact (1 ≤ p)]
+  [is_finite_measure_on_compacts μ] : 
+  (Cc^n⟮Ω, E, F; ℝ⟯) →L[ℝ] (Lp F p μ) :=
+{ to_linear_map := to_Lpₗ p μ,
+  cont := 
+  begin
+    change continuous (to_Lpₗ p μ),
+    rw continuous_iff_of_linear,
+    intros K hK,
+    exact (cont_diff_map_supported_in.to_Lp p μ).continuous,
+  end } 
 
 end real
 
