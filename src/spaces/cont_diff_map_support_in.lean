@@ -3,8 +3,8 @@ import analysis.normed.group.basic
 import measure_theory.function.lp_space
 import ..compacts
 
-open topological_space function measure_theory set
-open_locale bounded_cont_diff_map topological_space ennreal
+open topological_space function measure_theory set filter
+open_locale bounded_cont_diff_map topological_space ennreal bounded_continuous_function
 
 section prelim
 
@@ -169,6 +169,27 @@ topological_add_group_induced _
 
 instance : has_continuous_smul 𝕜 (cont_diff_map_supported_in 𝕜 E F K n) :=
 has_continuous_smul_induced _
+
+noncomputable def to_bounded_cont_diff_mapL : 
+  cont_diff_map_supported_in 𝕜 E F K n →L[𝕜] (B^n⟮E,F;𝕜⟯) :=
+{ to_linear_map := to_bounded_cont_diff_mapₗ,
+  cont := continuous_induced_dom }
+
+protected noncomputable def iterated_fderivL {i : ℕ} (hi : (i : with_top ℕ) ≤ n) : 
+  (cont_diff_map_supported_in 𝕜 E F K n) →L[𝕜] (E →ᵇ (E [×i]→L[𝕜] F)) :=
+bounded_cont_diff_map.iterated_fderivL hi ∘L to_bounded_cont_diff_mapL
+
+protected lemma has_basis_zero : 
+  (𝓝 0 : filter $ cont_diff_map_supported_in 𝕜 E F K n).has_basis 
+  (λ Nε : ℕ × ℝ, 0 < Nε.2) (λ Nε, ⋂ (i : ℕ) (hiN : i ≤ Nε.1) (hi : ↑i ≤ n), 
+    cont_diff_map_supported_in.iterated_fderivL hi ⁻¹' metric.ball 0 Nε.2) :=
+begin
+  rw [nhds_induced],
+  convert bounded_cont_diff_map.has_basis_zero.comap to_bounded_cont_diff_mapₗ,
+  ext,
+  simp only [mem_Inter, mem_preimage, mem_ball_zero_iff],
+  refl
+end
 
 lemma mem_ℒp (f : cont_diff_map_supported_in 𝕜 E F K n) 
   [measurable_space 𝕜] [opens_measurable_space 𝕜] 

@@ -236,55 +236,56 @@ bounded_cont_diff_map.iterated_fderivL (zero_le _)
 
 end any_field
 
-section real
-
-open_locale pointwise
-
-variables {E F G : Type*} [normed_group E] [normed_group F] [normed_group G] 
-  [normed_space ℝ E] [normed_space ℝ F] [normed_space ℝ G]
-  {n : with_top ℕ} {f g : B^n⟮E, F; ℝ⟯} {x : E}
-
---protected lemma has_basis_zero_homotethy : (𝓝 0 : filter $ B^n⟮E, F; ℝ⟯).has_basis 
---  (λ Nε : ℕ × ℝ, 0 < Nε.2) (λ Nε, Nε.2 • {f | ∀ (i : ℕ) (hiN : i ≤ Nε.1) 
---    (hi : (i : with_top ℕ) ≤ n) , ∥f.iterated_fderiv hi∥ < 1}) :=
+--section real
+--
+--open_locale pointwise
+--
+--variables {E F G : Type*} [normed_group E] [normed_group F] [normed_group G] 
+--  [normed_space ℝ E] [normed_space ℝ F] [normed_space ℝ G]
+--  {n : with_top ℕ} {f g : B^n⟮E, F; ℝ⟯} {x : E}
+--
+----protected lemma has_basis_zero_homotethy : (𝓝 0 : filter $ B^n⟮E, F; ℝ⟯).has_basis 
+----  (λ Nε : ℕ × ℝ, 0 < Nε.2) (λ Nε, Nε.2 • {f | ∀ (i : ℕ) (hiN : i ≤ Nε.1) 
+----    (hi : (i : with_top ℕ) ≤ n) , ∥f.iterated_fderiv hi∥ < 1}) :=
+----begin
+----  refine bounded_cont_diff_map.has_basis_zero.to_has_basis _ _,
+----  { rintros ⟨N, ε⟩ hε,
+----    refine ⟨⟨N, 1/ε⟩, one_div_pos.mpr hε, _⟩,
+----    change _ • _ ⊆ _,
+----    rw set_smul_subset_iff₀, }
+----  
+----end
+--
+--lemma goal (T : B^n⟮E, F; ℝ⟯ →ₗ[ℝ] G) : 
+--  continuous T ↔ ∃ (p : ℕ), ∃ C > 0, ∀ f : B^n⟮E, F; ℝ⟯, 
+--    ∥T f∥ ≤ C * (⨆ (i : ℕ) (hip : i ≤ p) (hin : ↑i ≤ n), ∥f.iterated_fderiv hin∥) :=
 --begin
---  refine bounded_cont_diff_map.has_basis_zero.to_has_basis _ _,
---  { rintros ⟨N, ε⟩ hε,
---    refine ⟨⟨N, 1/ε⟩, one_div_pos.mpr hε, _⟩,
---    change _ • _ ⊆ _,
---    rw set_smul_subset_iff₀, }
---  
+--  sorry
 --end
-
-lemma goal (T : B^n⟮E, F; ℝ⟯ →ₗ[ℝ] G) : 
-  continuous T ↔ ∃ (p : ℕ), ∃ C > 0, ∀ f : B^n⟮E, F; ℝ⟯, 
-    ∥T f∥ ≤ C * (⨆ (i : ℕ) (hip : i ≤ p) (hin : ↑i ≤ n), ∥f.iterated_fderiv hin∥) :=
-begin
-  sorry
-end
-
-lemma continuous_iff_of_linear (T : B^n⟮E, F; ℝ⟯ →ₗ[ℝ] G) : 
-  continuous T ↔ ∃ (p : ℕ), ∃ C > 0, ∀ f : B^n⟮E, F; ℝ⟯, 
-    ∥T f∥ ≤ C * (⨆ (i ≤ p) (hin : ↑i ≤ n) (x : E), ∥iterated_fderiv ℝ i f x∥) :=
-begin
-  sorry
-end
-
-lemma bar (T : B^n⟮E, F; ℝ⟯ →ₗ[ℝ] G) : 
-  continuous_at T 0 ↔ ∃ (p : ℕ), ∃ C > 0, ∀ f : B^n⟮E, F; ℝ⟯, 
-    ∥T f∥ ≤ C * (⨆ (i : ℕ) (hip : i ≤ p) (hin : ↑i ≤ n), ∥f.iterated_fderiv hin∥) :=
-begin
-  rw [continuous_at, map_zero, 
-      bounded_cont_diff_map.has_basis_zero.tendsto_iff metric.nhds_basis_ball],
-  split,
-  { intro H,
-    rcases H 1 zero_lt_one with ⟨⟨p, ε⟩, hε, H'⟩,
-    refine ⟨p, ε⁻¹, inv_pos.mpr hε, λ f, _⟩,
-    sorry },
-  { rintros ⟨p, C, hC, H⟩ ε hε,
-    sorry }
-end
-
-end real
+--
+--lemma continuous_iff_of_linear (T : B^n⟮E, F; ℝ⟯ →ₗ[ℝ] G) : 
+--  continuous T ↔ ∃ (p : ℕ), ∃ C > 0, ∀ f : B^n⟮E, F; ℝ⟯, 
+--    ∥T f∥ ≤ C * (⨆ (i ≤ p) (hin : ↑i ≤ n) (x : E), ∥iterated_fderiv ℝ i f x∥) :=
+--begin
+--  sorry
+--end
+--
+--lemma bar (T : B^n⟮E, F; ℝ⟯ →ₗ[ℝ] G) : 
+--  continuous_at T 0 ↔ ∃ (p : ℕ), ∃ C > 0, ∀ f : B^n⟮E, F; ℝ⟯, 
+--    ∥T f∥ ≤ C * (⨆ (i : ℕ) (hip : i ≤ p) (hin : ↑i ≤ n), ∥f.iterated_fderiv hin∥) :=
+--begin
+--  rw [continuous_at, map_zero, 
+--      bounded_cont_diff_map.has_basis_zero.tendsto_iff metric.nhds_basis_ball],
+--  split,
+--  { intro H,
+--    rcases H 1 zero_lt_one with ⟨⟨p, ε⟩, hε, H'⟩,
+--    refine ⟨p, ε⁻¹, inv_pos.mpr hε, λ f, _⟩,
+--    sorry },
+--  { rintros ⟨p, C, hC, H⟩ ε hε,
+--    sorry }
+--end
+--
+--end real
+--
 
 end bounded_cont_diff_map
