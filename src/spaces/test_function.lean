@@ -86,12 +86,12 @@ begin
   exact f.eventually_eq_cocompact
 end
 
-def tsupport' (f : Cc^n⟮Ω, E, F; 𝕜⟯) :
+protected def tsupport (f : Cc^n⟮Ω, E, F; 𝕜⟯) :
   compacts E :=
 ⟨tsupport f, f.has_compact_support⟩
 
-lemma tsupport'_subset (f : Cc^n⟮Ω, E, F; 𝕜⟯) :
-  ↑f.tsupport' ⊆ Ω :=
+protected lemma tsupport_subset (f : Cc^n⟮Ω, E, F; 𝕜⟯) :
+  ↑f.tsupport ⊆ Ω :=
 begin
   sorry
 end
@@ -106,6 +106,10 @@ Cc^n⟮Ω, E, F; 𝕜⟯ :=
 def to_support_in {K : set E} (f : Cc^n⟮Ω, E, F; 𝕜⟯) (hK : ∀ x ∉ K, f x = 0) :
   cont_diff_map_supported_in 𝕜 E F K n :=
 ⟨f, f.cont_diff, hK⟩
+
+def to_support_in_tsupport (f : Cc^n⟮Ω, E, F; 𝕜⟯) :
+  cont_diff_map_supported_in 𝕜 E F f.tsupport n :=
+⟨f, f.cont_diff, λ x, image_eq_zero_of_nmem_tsupport⟩
 
 def of_support_inₗ (K : compacts E) (hK : ↑K ⊆ Ω) :
   cont_diff_map_supported_in 𝕜 E F K n 
@@ -236,18 +240,24 @@ end
 
 noncomputable def to_bounded_cont_diff_map (f : Cc^n⟮Ω, E, F; ℝ⟯) : 
   B^n⟮E,F;ℝ⟯ :=
-(f.to_support_in ℝ F n (λ x, )).to_bounded_cont_diff_map
+(f.to_support_in_tsupport ℝ F n).to_bounded_cont_diff_map
 
 noncomputable def to_bounded_cont_diff_mapₗ : 
   Cc^n⟮Ω, E, F; ℝ⟯ →ₗ[ℝ] B^n⟮E ,F ; ℝ⟯ := 
 { to_fun := to_bounded_cont_diff_map,
-  map_add' := sorry,
-  map_smul' := sorry }
+  map_add' := λ f g, by ext; refl,
+  map_smul' := λ c f, by ext; refl }
 
 noncomputable def to_bounded_cont_diff_mapL : 
   Cc^n⟮Ω, E, F; ℝ⟯ →L[ℝ] B^n⟮E ,F ; ℝ⟯ := 
 { to_linear_map := to_bounded_cont_diff_mapₗ,
-  cont := sorry }
+  cont := 
+  begin
+    change continuous to_bounded_cont_diff_mapₗ,
+    rw continuous_iff_of_linear,
+    intros K hK,
+    exact cont_diff_map_supported_in.to_bounded_cont_diff_mapL.continuous
+  end }
 
 lemma mem_ℒp (f : Cc^n⟮Ω, E, F; ℝ⟯) 
   {m : measurable_space E} [opens_measurable_space E] [measurable_space F] 

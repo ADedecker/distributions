@@ -101,7 +101,6 @@ variables {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜] [normed_group E] [n
 
 instance : add_comm_group (B^n⟮E, F; 𝕜⟯) := submodule.add_comm_group _
 instance : module 𝕜 (B^n⟮E, F; 𝕜⟯) := submodule.module _
-
 instance : has_coe_to_fun (B^n⟮E, F; 𝕜⟯) (λ _, E → F) := ⟨λ f, f.1⟩
 
 @[ext] lemma ext (H : ∀x, f x = g x) : f = g :=
@@ -235,6 +234,16 @@ noncomputable def to_bounded_continuous_map :
 bounded_cont_diff_map.iterated_fderivL (zero_le _)
 
 end any_field
+
+section real
+
+variables {E F G : Type*} [normed_group E] [normed_group F] [normed_group G] 
+  [normed_space ℝ E] [normed_space ℝ F] [normed_space ℝ G]
+  {n : with_top ℕ} {f g : B^n⟮E, F; ℝ⟯} {x : E}
+
+instance : locally_convex_space ℝ (B^n⟮E, F; ℝ⟯) := sorry
+
+end real
 
 --section real
 --
