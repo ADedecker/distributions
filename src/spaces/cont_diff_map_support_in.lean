@@ -233,6 +233,11 @@ noncomputable instance : normed_group (cont_diff_map_supported_in 𝕜 E F K 0) 
 
 lemma norm_def {f : cont_diff_map_supported_in 𝕜 E F K 0} : ∥f∥ = ∥to_bounded_cont_diff_mapL f∥ := rfl
 
+-- TODO : add `cont_diff_map_supported_in.to_bounded_continuous_function`
+lemma le_norm {f : cont_diff_map_supported_in 𝕜 E F K 0} (x : E) : ∥f x∥ ≤ ∥f∥ := 
+bounded_continuous_function.norm_coe_le_norm 
+  (bounded_cont_diff_map.to_bounded_continuous_function 𝕜 E F 0 (to_bounded_cont_diff_mapL f)) x
+
 noncomputable instance : normed_space 𝕜 (cont_diff_map_supported_in 𝕜 E F K 0) :=
 { norm_smul_le := λ c f, 
   begin
@@ -260,7 +265,12 @@ def to_Lpₗ [measurable_space 𝕜] [opens_measurable_space 𝕜]
   map_add' := λ f g, (f.mem_ℒp p μ).to_Lp_add (g.mem_ℒp p μ),
   map_smul' := λ c f, (f.mem_ℒp p μ).to_Lp_const_smul c }
 
-#check linear_map.mk_continuous
+lemma coe_fn_to_Lpₗ [measurable_space 𝕜] [opens_measurable_space 𝕜] 
+  {m : measurable_space E} [opens_measurable_space E] [measurable_space F] 
+  [second_countable_topology F] [borel_space F] (p : ℝ≥0∞) (μ : measure E) [fact (1 ≤ p)]
+  [is_finite_measure_on_compacts μ] (f : cont_diff_map_supported_in 𝕜 E F K n) : 
+  to_Lpₗ n p μ f =ᵐ[μ] f :=
+(f.mem_ℒp p μ).coe_fn_to_Lp
 
 noncomputable def to_Lp_zero [measurable_space 𝕜] [opens_measurable_space 𝕜] 
   {m : measurable_space E} [opens_measurable_space E] [measurable_space F] 
@@ -270,9 +280,22 @@ noncomputable def to_Lp_zero [measurable_space 𝕜] [opens_measurable_space �
 { to_linear_map := to_Lpₗ 0 p μ,
   cont := 
   begin
+    -- TODO : unify with `continuous.mem_ℒp_of_has_compact_support`
+    have hK₁ : measurable_set ↑K := K.compact.measurable_set,
+    have hK₂ : μ ↑K ≠ ∞ := K.compact.measure_lt_top.ne,
     change continuous (to_Lpₗ 0 p μ),
-    sorry,
-    --refine linear_map.continuous_of_bound (to_Lpₗ 0 p μ) (μ K) _,
+    refine linear_map.continuous_of_bound (to_Lpₗ 0 p μ) 
+      (∥indicator_const_Lp p hK₁ hK₂ (1 : ℝ)∥) (λ f, _),
+    rw [mul_comm],
+    refine Lp.norm_le_mul_norm_of_ae_le_mul _,
+    filter_upwards [f.coe_fn_to_Lpₗ 0 p μ, 
+      (indicator_const_Lp_coe_fn : indicator_const_Lp p hK₁ hK₂ (1 : ℝ) =ᵐ[μ] _)],
+    intros x hx₁ hx₂,
+    rw [hx₁, hx₂, ← norm_norm f, ← norm_smul, ← indicator_const_smul_apply, norm_indicator_eq_indicator_norm],
+    refine set.le_indicator (λ a _, _) (λ a ha, _) x,
+    { rw [smul_eq_mul, mul_one, norm_norm],
+      exact le_norm _ },
+    { rw [f.supported_in _ ha, norm_zero] }
   end }
 
 noncomputable def to_Lp [measurable_space 𝕜] [opens_measurable_space 𝕜] 
