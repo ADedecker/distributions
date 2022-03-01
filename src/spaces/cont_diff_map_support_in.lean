@@ -128,6 +128,10 @@ lemma supported_in (f : cont_diff_map_supported_in 𝕜 E F K n) :
   ∀ x ∉ K, f x = 0 :=
 f.2.2
 
+lemma support_subset (f : cont_diff_map_supported_in 𝕜 E F K n) : 
+  support f ⊆ K :=
+support_subset_iff'.mpr f.2.2
+
 end any_set
 
 section compact
@@ -139,6 +143,10 @@ variables {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜] [normed_group E] [n
 lemma has_compact_support (f : cont_diff_map_supported_in 𝕜 E F K n) : 
   has_compact_support f :=
 has_compact_support.intro K.2 f.supported_in
+
+lemma tsupport_subset (f : cont_diff_map_supported_in 𝕜 E F K n) : 
+  tsupport f ⊆ K :=
+closure_minimal f.support_subset K.2.is_closed
 
 def of_support_subset {f : E → F} (hf : cont_diff 𝕜 n f) (hsupp : support f ⊆ K) :
   cont_diff_map_supported_in 𝕜 E F K n :=
@@ -246,6 +254,30 @@ noncomputable instance : normed_space 𝕜 (cont_diff_map_supported_in 𝕜 E F 
   end }
 
 end zero
+
+section infinity
+
+lemma differentiable (f : cont_diff_map_supported_in 𝕜 E F K ⊤) : differentiable 𝕜 f := 
+sorry
+
+noncomputable def fderiv (f : cont_diff_map_supported_in 𝕜 E F K ⊤) : 
+  cont_diff_map_supported_in 𝕜 E (E →L[𝕜] F) K ⊤ := 
+of_support_subset (cont_diff_top_iff_fderiv.mp f.cont_diff).2 
+  (subset_closure.trans $ (fderiv_tsupport_subset f.differentiable).trans f.tsupport_subset)
+
+noncomputable def fderivₗ : cont_diff_map_supported_in 𝕜 E F K ⊤ 
+  →ₗ[𝕜] cont_diff_map_supported_in 𝕜 E (E →L[𝕜] F) K ⊤ := 
+{ to_fun := cont_diff_map_supported_in.fderiv,
+  map_add' := sorry,
+  map_smul' := sorry }
+
+noncomputable def fderivL : cont_diff_map_supported_in 𝕜 E F K ⊤ 
+  →L[𝕜] cont_diff_map_supported_in 𝕜 E (E →L[𝕜] F) K ⊤ := 
+{ to_linear_map := fderivₗ,
+  cont := continuous_induced_rng 
+    (bounded_cont_diff_map.fderivL 𝕜 E F ∘L to_bounded_cont_diff_mapL).continuous }
+
+end infinity
 
 lemma mem_ℒp (f : cont_diff_map_supported_in 𝕜 E F K n) 
   [measurable_space 𝕜] [opens_measurable_space 𝕜] 

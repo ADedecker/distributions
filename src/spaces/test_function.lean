@@ -296,6 +296,27 @@ noncomputable def to_Lp
     exact (cont_diff_map_supported_in.to_Lp n p μ).continuous,
   end } 
 
+variable {n}
+
+section infinity
+
+lemma differentiable (f : Cc^⊤⟮Ω, E, F; ℝ⟯) : differentiable ℝ f := 
+sorry
+
+noncomputable def fderiv (f : Cc^⊤⟮Ω, E, F; ℝ⟯) : Cc^⊤⟮Ω, E, E →L[ℝ] F; ℝ⟯ := 
+⟨fderiv ℝ f, sorry⟩
+
+noncomputable def fderivₗ : Cc^⊤⟮Ω, E, F; ℝ⟯ →ₗ[ℝ] Cc^⊤⟮Ω, E, E →L[ℝ] F; ℝ⟯ := 
+{ to_fun := test_function.fderiv,
+  map_add' := sorry,
+  map_smul' := sorry }
+
+noncomputable def fderivL : Cc^⊤⟮Ω, E, F; ℝ⟯ →L[ℝ] Cc^⊤⟮Ω, E, E →L[ℝ] F; ℝ⟯ := 
+{ to_linear_map := fderivₗ,
+  cont := sorry }
+
+end infinity
+
 end real
 
 end test_function

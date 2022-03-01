@@ -350,6 +350,30 @@ noncomputable instance : normed_space 𝕜 (B^0⟮E, F; 𝕜⟯) :=
 
 end zero
 
+section infinity
+
+noncomputable def fderiv (f : B^⊤⟮E, F; 𝕜⟯) : B^⊤⟮E, E →L[𝕜] F; 𝕜⟯ := 
+⟨fderiv 𝕜 f, (cont_diff_top_iff_fderiv.mp f.cont_diff).2, 
+  begin
+    intros i _,
+    rcases f.bounded (le_top : ↑(i+1) ≤ _) with ⟨C, hC⟩,
+    use C,
+    intros x,
+    specialize hC x,
+    rwa [iterated_fderiv_succ_eq_comp_right, linear_isometry_equiv.norm_map] at hC
+  end⟩
+
+noncomputable def fderivₗ : B^⊤⟮E, F; 𝕜⟯ →ₗ[𝕜] B^⊤⟮E, E →L[𝕜] F; 𝕜⟯ := 
+{ to_fun := bounded_cont_diff_map.fderiv 𝕜 E F,
+  map_add' := sorry,
+  map_smul' := sorry }
+
+noncomputable def fderivL : B^⊤⟮E, F; 𝕜⟯ →L[𝕜] B^⊤⟮E, E →L[𝕜] F; 𝕜⟯ := 
+{ to_linear_map := fderivₗ 𝕜 E F,
+  cont := sorry }
+
+end infinity
+
 end any_field
 
 section real
