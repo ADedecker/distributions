@@ -240,7 +240,7 @@ end
 
 noncomputable def to_bounded_cont_diff_map (f : Cc^n⟮Ω, E, F; ℝ⟯) : 
   B^n⟮E,F;ℝ⟯ :=
-(f.to_support_in_tsupport ℝ F n).to_bounded_cont_diff_map
+(f.to_support_in_tsupport ℝ F n).to_bounded_cont_diff_map ℝ E F _ n
 
 noncomputable def to_bounded_cont_diff_mapₗ : 
   Cc^n⟮Ω, E, F; ℝ⟯ →ₗ[ℝ] B^n⟮E ,F ; ℝ⟯ := 
@@ -256,7 +256,7 @@ noncomputable def to_bounded_cont_diff_mapL :
     change continuous to_bounded_cont_diff_mapₗ,
     rw continuous_iff_of_linear,
     intros K hK,
-    exact cont_diff_map_supported_in.to_bounded_cont_diff_mapL.continuous
+    exact (cont_diff_map_supported_in.to_bounded_cont_diff_mapL _ _ _ _ _).continuous
   end }
 
 lemma mem_ℒp (f : Cc^n⟮Ω, E, F; ℝ⟯) 

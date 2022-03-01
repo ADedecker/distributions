@@ -283,90 +283,28 @@ begin
   ext x,
   change (to_bounded_continuous_function 𝕜 E F n f) x = _,
   rw hfg,
-  refl,
+  refl
 end
 
-section zero
+variables {n}
 
---def of_bounded_continuous_function (f : E →ᵇ F) :
---  (B^0⟮E, F; 𝕜⟯) :=
---⟨f, cont_diff_zero.mpr f.continuous, λ i hi, ⟨∥f∥, λ x, 
---  begin
---    have := f.bdd_above_range_norm_comp,
---    norm_cast at hi,
---    rw nat.le_zero_iff at hi,
---    rw [hi, iterated_fderiv_zero_eq_comp, comp_apply, linear_isometry_equiv.norm_map],
---    exact f.norm_coe_le_norm x,
---  end⟩⟩
---
---noncomputable def of_bounded_continuous_functionₗ :
---  (E →ᵇ F) →ₗ[𝕜] (B^0⟮E, F; 𝕜⟯) :=
---{ to_fun := of_bounded_continuous_function 𝕜 E F,
---  map_add' := λ f g, by ext; refl,
---  map_smul' := λ c f, by ext; refl }
---
---#check continuous_linear_equiv.comp_continuous_iff
---
-----noncomputable def to_bounded_continuous_function_equivₗ :
-----  (B^0⟮E, F; 𝕜⟯) ≃ₗ[𝕜] (E →ᵇ F) := 
-----{ to_fun := to_bounded_continuous_function 𝕜 E F 0,
-----  inv_fun := of_bounded_continuous_function 𝕜 E F,
-----  map_add' := continuous_linear_map.map_add _,
-----  map_smul' := continuous_linear_map.map_smul _,
-----  left_inv := λ f, by ext; refl,
-----  right_inv := λ f, by ext; refl }
-----
-----#check nondiscrete_normed_field
-----
-----noncomputable def to_bounded_continuous_function_equivₗᵢ :
-----  (B^0⟮E, F; 𝕜⟯) ≃ₗᵢ[𝕜] (E →ᵇ F) := 
-----{  }
-----
-----#check continuous_multilinear_map.curry0
-----#check coe
-----#check continuous_multilinear_map.dom_dom_congr
---
---private noncomputable def aux₁ (i : ℕ) (hi : i = 0) : (E [×i]→L[𝕜] F) ≃L[𝕜] F := 
---  (continuous_multilinear_map.dom_dom_congr 𝕜 E F (fin_congr hi)).trans
---  (continuous_multilinear_curry_fin0 𝕜 E F)
---    
---private noncomputable def aux₂ (i : ℕ) (hi : i = 0) : (E →ᵇ (E [×i]→L[𝕜] F)) ≃L[𝕜] (E →ᵇ F) := 
---  ( (continuous_multilinear_map.dom_dom_congr 𝕜 E F (fin_congr hi)).trans
---    (continuous_multilinear_curry_fin0 𝕜 E F) ).to_continuous_linear_equiv
---  .comp_left_continuous_bounded E
---
---noncomputable def of_bounded_continuous_functionL :
---  (E →ᵇ F) →L[𝕜] (B^0⟮E, F; 𝕜⟯) :=
---{ to_linear_map := of_bounded_continuous_functionₗ 𝕜 E F,
---  cont := 
---  begin
---    change continuous (of_bounded_continuous_functionₗ 𝕜 E F),
---    refine continuous_infi_rng (λ i, continuous_infi_rng $ λ hi, continuous_induced_rng _),
---    have : i = 0,
---    { sorry },
---    rw ← (aux₂ 𝕜 E F i this).comp_continuous_iff, 
---    convert continuous_id,
---    ext f x,
---    rw [comp_app, comp_app, aux₂],
---    simp,
---    refl,
---    --rw ← ((continuous_multilinear_curry_fin0 𝕜 E F).symm.to_continuous_linear_equiv
---    --  .comp_left_continuous_bounded E).comp_continuous_iff,
---    --have : i = 0,
---    --{ sorry },
---    --have := ((continuous_multilinear_curry_fin0 𝕜 E F).symm.to_continuous_linear_equiv.comp_left_continuous_bounded E),
---    --convert ((continuous_multilinear_curry_fin0 𝕜 E F).symm.to_continuous_linear_equiv.comp_left_continuous_bounded E).to_continuous_linear_map.continuous, 
---    --rw [continuous_iff_coinduced_le, bounded_cont_diff_map.topology, le_infi_iff],
---    --intros i,
---    --rw le_infi_iff,
---    --intros hi,
---  end }
-----
-----noncomputable def equiv_bounded_continuous_function : 
-----  (B^0⟮E, F; 𝕜⟯) ≃L[𝕜] (E →ᵇ F) :=
---((continuous_multilinear_curry_fin0 𝕜 E F).to_continuous_linear_equiv
---  .comp_left_continuous_bounded E).trans
---(continuous_multilinear_curry_fin0 𝕜 E F)
+protected def cast_of_le {k : with_top ℕ} (hkn : k ≤ n) (f : B^n⟮E, F; 𝕜⟯) :
+  B^k⟮E, F; 𝕜⟯ :=
+⟨f, f.cont_diff.of_le hkn, λ i hi, f.bounded (hi.trans hkn)⟩
+
+protected def cast_of_leₗ {k : with_top ℕ} (hkn : k ≤ n) :
+  B^n⟮E, F; 𝕜⟯ →ₗ[𝕜] B^k⟮E, F; 𝕜⟯ :=
+{ to_fun := bounded_cont_diff_map.cast_of_le 𝕜 E F hkn,
+  map_add' := λ f g, by ext; refl,
+  map_smul' := λ c f, by ext; refl }
+
+protected noncomputable def cast_of_leL {k : with_top ℕ} (hkn : k ≤ n) :
+  B^n⟮E, F; 𝕜⟯ →L[𝕜] B^k⟮E, F; 𝕜⟯ :=
+{ to_linear_map := bounded_cont_diff_map.cast_of_leₗ 𝕜 E F hkn,
+  cont := continuous_infi_rng (λ i, continuous_infi_rng $ λ hi, continuous_induced_rng 
+    (bounded_cont_diff_map.iterated_fderivL $ hi.trans hkn).continuous) }
+
+section zero
 
 private lemma uniform_space_eq_comap : bounded_cont_diff_map.uniform_space = 
   uniform_space.comap (to_bounded_continuous_function 𝕜 E F 0) infer_instance := 
@@ -400,6 +338,15 @@ noncomputable instance : normed_group (B^0⟮E, F; 𝕜⟯) :=
 { to_metric_space := infer_instance,
   ..normed_group.induced (to_bounded_continuous_function 𝕜 E F 0).to_linear_map.to_add_monoid_hom 
   (to_bounded_continuous_function_injective 𝕜 E F 0) }
+
+@[simp] lemma norm_def {f : B^0⟮E, F; 𝕜⟯} : ∥f∥ = ∥to_bounded_continuous_function 𝕜 E F 0 f∥ := rfl
+
+noncomputable instance : normed_space 𝕜 (B^0⟮E, F; 𝕜⟯) :=
+{ norm_smul_le := λ c f, 
+  begin
+    rw [norm_def, norm_def, continuous_linear_map.map_smul],
+    exact normed_space.norm_smul_le _ _
+  end }
 
 end zero
 

@@ -154,6 +154,16 @@ def to_bounded_cont_diff_map (f : cont_diff_map_supported_in 𝕜 E F K n) :
   B^n⟮E,F;𝕜⟯ :=
 ⟨f, f.cont_diff, λ i hi, f.bounded hi⟩
 
+lemma to_bounded_cont_diff_map_injective :
+  injective (to_bounded_cont_diff_map : cont_diff_map_supported_in 𝕜 E F K n → B^n⟮E,F;𝕜⟯) :=
+begin
+  intros f g hfg,
+  ext x,
+  change to_bounded_cont_diff_map f x = _,
+  rw hfg,
+  refl
+end
+
 def to_bounded_cont_diff_mapₗ : 
   cont_diff_map_supported_in 𝕜 E F K n →ₗ[𝕜] (B^n⟮E,F;𝕜⟯) :=
 { to_fun := to_bounded_cont_diff_map,
@@ -162,6 +172,9 @@ def to_bounded_cont_diff_mapₗ :
 
 noncomputable instance : topological_space (cont_diff_map_supported_in 𝕜 E F K n) :=
 topological_space.induced to_bounded_cont_diff_mapₗ infer_instance
+
+noncomputable instance : uniform_space (cont_diff_map_supported_in 𝕜 E F K n) :=
+uniform_space.comap to_bounded_cont_diff_mapₗ infer_instance
 
 instance : topological_add_group (cont_diff_map_supported_in 𝕜 E F K n) :=
 topological_add_group_induced _
@@ -173,6 +186,22 @@ noncomputable def to_bounded_cont_diff_mapL :
   cont_diff_map_supported_in 𝕜 E F K n →L[𝕜] (B^n⟮E,F;𝕜⟯) :=
 { to_linear_map := to_bounded_cont_diff_mapₗ,
   cont := continuous_induced_dom }
+
+protected def cast_of_le {k : with_top ℕ} (hkn : k ≤ n) (f : cont_diff_map_supported_in 𝕜 E F K n) :
+  cont_diff_map_supported_in 𝕜 E F K k :=
+⟨f, f.cont_diff.of_le hkn, f.supported_in⟩
+
+protected def cast_of_leₗ {k : with_top ℕ} (hkn : k ≤ n) :
+  cont_diff_map_supported_in 𝕜 E F K n →ₗ[𝕜] cont_diff_map_supported_in 𝕜 E F K k :=
+{ to_fun := cont_diff_map_supported_in.cast_of_le hkn,
+  map_add' := λ f g, by ext; refl,
+  map_smul' := λ c f, by ext; refl }
+
+protected noncomputable def cast_of_leL {k : with_top ℕ} (hkn : k ≤ n) :
+  (cont_diff_map_supported_in 𝕜 E F K n) →L[𝕜] (cont_diff_map_supported_in 𝕜 E F K k) :=
+{ to_linear_map := cont_diff_map_supported_in.cast_of_leₗ hkn,
+  cont := continuous_induced_rng 
+    ((bounded_cont_diff_map.cast_of_leL 𝕜 E F hkn).comp (to_bounded_cont_diff_mapL)).continuous }
 
 protected noncomputable def iterated_fderivL {i : ℕ} (hi : (i : with_top ℕ) ≤ n) : 
   (cont_diff_map_supported_in 𝕜 E F K n) →L[𝕜] (E →ᵇ (E [×i]→L[𝕜] F)) :=
@@ -190,12 +219,61 @@ begin
   refl
 end
 
+section zero
+
+noncomputable instance : metric_space (cont_diff_map_supported_in 𝕜 E F K 0) :=
+metric_space.induced (to_bounded_cont_diff_mapL : cont_diff_map_supported_in 𝕜 E F K 0 →L[𝕜] _) 
+  to_bounded_cont_diff_map_injective infer_instance
+
+noncomputable instance : normed_group (cont_diff_map_supported_in 𝕜 E F K 0) :=
+{ to_metric_space := infer_instance,
+  ..normed_group.induced 
+    (to_bounded_cont_diff_mapL : cont_diff_map_supported_in 𝕜 E F K 0 →L[𝕜] _)
+      .to_linear_map.to_add_monoid_hom to_bounded_cont_diff_map_injective }
+
+lemma norm_def {f : cont_diff_map_supported_in 𝕜 E F K 0} : ∥f∥ = ∥to_bounded_cont_diff_mapL f∥ := rfl
+
+noncomputable instance : normed_space 𝕜 (cont_diff_map_supported_in 𝕜 E F K 0) :=
+{ norm_smul_le := λ c f, 
+  begin
+    rw [norm_def, norm_def, continuous_linear_map.map_smul],
+    exact normed_space.norm_smul_le _ _
+  end }
+
+end zero
+
 lemma mem_ℒp (f : cont_diff_map_supported_in 𝕜 E F K n) 
   [measurable_space 𝕜] [opens_measurable_space 𝕜] 
   {m : measurable_space E} [opens_measurable_space E] [measurable_space F] 
   [second_countable_topology F] [borel_space F] (p : ℝ≥0∞) (μ : measure E) [fact (1 ≤ p)]
   [is_finite_measure_on_compacts μ] : mem_ℒp f p μ :=
 f.continuous.mem_ℒp_of_has_compact_support f.has_compact_support p μ
+
+variables (n)
+
+def to_Lpₗ [measurable_space 𝕜] [opens_measurable_space 𝕜] 
+  {m : measurable_space E} [opens_measurable_space E] [measurable_space F] 
+  [second_countable_topology F] [borel_space F] (p : ℝ≥0∞) (μ : measure E) [fact (1 ≤ p)]
+  [is_finite_measure_on_compacts μ] : 
+  (cont_diff_map_supported_in 𝕜 E F K n) →ₗ[𝕜] (Lp F p μ) :=
+{ to_fun := λ f, (f.mem_ℒp p μ).to_Lp f,
+  map_add' := λ f g, (f.mem_ℒp p μ).to_Lp_add (g.mem_ℒp p μ),
+  map_smul' := λ c f, (f.mem_ℒp p μ).to_Lp_const_smul c }
+
+#check linear_map.mk_continuous
+
+noncomputable def to_Lp_zero [measurable_space 𝕜] [opens_measurable_space 𝕜] 
+  {m : measurable_space E} [opens_measurable_space E] [measurable_space F] 
+  [second_countable_topology F] [borel_space F] (p : ℝ≥0∞) (μ : measure E) [fact (1 ≤ p)]
+  [is_finite_measure_on_compacts μ] : 
+  (cont_diff_map_supported_in 𝕜 E F K 0) →L[𝕜] (Lp F p μ) :=
+{ to_linear_map := to_Lpₗ 0 p μ,
+  cont := 
+  begin
+    change continuous (to_Lpₗ 0 p μ),
+    sorry,
+    --refine linear_map.continuous_of_bound (to_Lpₗ 0 p μ) (μ K) _,
+  end }
 
 noncomputable def to_Lp [measurable_space 𝕜] [opens_measurable_space 𝕜] 
   {m : measurable_space E} [opens_measurable_space E] [measurable_space F] 
@@ -205,9 +283,7 @@ noncomputable def to_Lp [measurable_space 𝕜] [opens_measurable_space 𝕜]
 { to_fun := λ f, (f.mem_ℒp p μ).to_Lp f,
   map_add' := λ f g, (f.mem_ℒp p μ).to_Lp_add (g.mem_ℒp p μ),
   map_smul' := λ c f, (f.mem_ℒp p μ).to_Lp_const_smul c,
-  cont := sorry }  
-  -- Proof 1 : Consequence of `continuous_iff_of_linear` (only in the real case ?)
-  -- Proof 2 : Equip `cont_diff_map_supported_in 𝕜 E F K n 0` with a norm and factor through it
+  cont := ((to_Lp_zero p μ).comp (cont_diff_map_supported_in.cast_of_leL (zero_le _))).continuous }  
 
 end compact
 
