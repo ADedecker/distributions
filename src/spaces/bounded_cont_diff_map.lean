@@ -169,6 +169,10 @@ protected noncomputable def iterated_fderiv {i : ℕ} (hi : (i : with_top ℕ) �
     simp [dist_eq_norm, norm_sub_le_of_le (hC x) (hC y)]
   end }
 
+@[simp] protected lemma iterated_fderiv_apply {i : ℕ} (hi : (i : with_top ℕ) ≤ n) 
+  (f : B^n⟮E, F; 𝕜⟯) : 
+  f.iterated_fderiv hi x = iterated_fderiv 𝕜 i f x := rfl
+
 @[simp] protected lemma iterated_fderiv_add {i : ℕ} (hi : (i : with_top ℕ) ≤ n) :
   (f + g).iterated_fderiv hi = f.iterated_fderiv hi + g.iterated_fderiv hi :=
 begin
@@ -192,6 +196,10 @@ protected noncomputable def iterated_fderivₗ {i : ℕ} (hi : (i : with_top ℕ
 { to_fun := λ f, f.iterated_fderiv hi,
   map_add' := λ f g, bounded_cont_diff_map.iterated_fderiv_add hi,
   map_smul' :=λ r f, bounded_cont_diff_map.iterated_fderiv_smul hi }
+
+@[simp] protected lemma iterated_fderivₗ_apply {i : ℕ} (hi : (i : with_top ℕ) ≤ n) 
+  (f : B^n⟮E, F; 𝕜⟯) : 
+  bounded_cont_diff_map.iterated_fderivₗ hi f = f.iterated_fderiv hi := rfl
 
 private noncomputable def tmp_topology₀ (i : ℕ) (hi : (i : with_top ℕ) ≤ n) : 
   topological_space (B^n⟮E, F; 𝕜⟯) :=
@@ -259,6 +267,16 @@ protected noncomputable def iterated_fderivL {i : ℕ} (hi : (i : with_top ℕ) 
   (B^n⟮E, F; 𝕜⟯) →L[𝕜] (E →ᵇ (E [×i]→L[𝕜] F)) :=
 { to_linear_map := bounded_cont_diff_map.iterated_fderivₗ hi,
   cont := continuous_infi_dom (continuous_infi_dom continuous_induced_dom) }
+
+@[simp] protected lemma iterated_fderivL_apply {i : ℕ} (hi : (i : with_top ℕ) ≤ n) 
+  (f : B^n⟮E, F; 𝕜⟯) : 
+  bounded_cont_diff_map.iterated_fderivL hi f = f.iterated_fderiv hi := rfl
+
+lemma continuous_iff {X : Type*} [topological_space X] (φ : X → B^n⟮E, F; 𝕜⟯) : 
+  continuous φ ↔ ∀ (i : ℕ) (hi : ↑i ≤ n), continuous 
+    ((bounded_cont_diff_map.iterated_fderiv hi) ∘ φ) :=
+⟨ λ hφ i hi, (bounded_cont_diff_map.iterated_fderivL hi).continuous.comp hφ, 
+  λ h, continuous_infi_rng (λ i, continuous_infi_rng $ λ hi, continuous_induced_rng (h i hi)) ⟩
 
 instance : topological_add_group (B^n⟮E, F; 𝕜⟯) :=
 topological_add_group_infi 
@@ -352,7 +370,12 @@ end zero
 
 section infinity
 
-noncomputable def fderiv (f : B^⊤⟮E, F; 𝕜⟯) : B^⊤⟮E, E →L[𝕜] F; 𝕜⟯ := 
+variables {𝕜 E F}
+
+protected lemma differentiable (f : B^⊤⟮E, F; 𝕜⟯) : differentiable 𝕜 f := 
+f.cont_diff.differentiable le_top 
+
+protected noncomputable def fderiv (f : B^⊤⟮E, F; 𝕜⟯) : B^⊤⟮E, E →L[𝕜] F; 𝕜⟯ := 
 ⟨fderiv 𝕜 f, (cont_diff_top_iff_fderiv.mp f.cont_diff).2, 
   begin
     intros i _,
@@ -363,14 +386,47 @@ noncomputable def fderiv (f : B^⊤⟮E, F; 𝕜⟯) : B^⊤⟮E, E →L[𝕜] F
     rwa [iterated_fderiv_succ_eq_comp_right, linear_isometry_equiv.norm_map] at hC
   end⟩
 
-noncomputable def fderivₗ : B^⊤⟮E, F; 𝕜⟯ →ₗ[𝕜] B^⊤⟮E, E →L[𝕜] F; 𝕜⟯ := 
-{ to_fun := bounded_cont_diff_map.fderiv 𝕜 E F,
-  map_add' := sorry,
-  map_smul' := sorry }
+#check bounded_cont_diff_map.fderiv
+
+@[simp] protected lemma fderiv_apply (f : B^⊤⟮E, F; 𝕜⟯) : 
+  f.fderiv x = fderiv 𝕜 f x := rfl
+
+protected noncomputable def fderivₗ : B^⊤⟮E, F; 𝕜⟯ →ₗ[𝕜] B^⊤⟮E, E →L[𝕜] F; 𝕜⟯ := 
+{ to_fun := bounded_cont_diff_map.fderiv,
+  map_add' := λ f g, 
+  begin
+    ext x : 1,
+    exact fderiv_add f.differentiable.differentiable_at
+      g.differentiable.differentiable_at,
+  end,
+  map_smul' := λ a f,
+  begin
+    ext x : 1,
+    exact fderiv_const_smul (f.cont_diff.differentiable le_top).differentiable_at _
+  end }
+
+@[simp] protected lemma fderivₗ_apply (f : B^⊤⟮E, F; 𝕜⟯) : 
+  ⇑(bounded_cont_diff_map.fderivₗ f) = fderiv 𝕜 f := rfl
 
 noncomputable def fderivL : B^⊤⟮E, F; 𝕜⟯ →L[𝕜] B^⊤⟮E, E →L[𝕜] F; 𝕜⟯ := 
-{ to_linear_map := fderivₗ 𝕜 E F,
-  cont := sorry }
+{ to_linear_map := bounded_cont_diff_map.fderivₗ,
+  cont := 
+  begin
+    rw bounded_cont_diff_map.continuous_iff,
+    intros i hi,
+    set! φ := 
+      (continuous_linear_map.comp_left_continuous_bounded E 
+        (continuous_multilinear_curry_right_equiv' 𝕜 i E F).symm
+          .to_continuous_linear_equiv.to_continuous_linear_map).comp 
+      (bounded_cont_diff_map.iterated_fderivL (le_top : (i+1 : with_top ℕ) ≤ ⊤))
+      with hφ,
+    have : bounded_cont_diff_map.iterated_fderiv hi ∘ bounded_cont_diff_map.fderivₗ.to_fun = φ,
+    { rw hφ,
+      ext f H k x, 
+      simp [iterated_fderiv_succ_apply_right] }, -- slooooooooooow
+    rw this,
+    exact φ.continuous
+  end }
 
 end infinity
 
