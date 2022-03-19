@@ -173,6 +173,15 @@ sorry
 
 attribute [instance] test_function.topology
 
+instance : topological_add_group Cc^n⟮Ω, E, F; ℝ⟯ := 
+topological_add_group_Inf (λ t ht, ht.2.1)
+
+instance : has_continuous_smul ℝ Cc^n⟮Ω, E, F; ℝ⟯ := 
+has_continuous_smul_Inf (λ t ht, ht.2.2.1)
+
+instance : locally_convex_space ℝ Cc^n⟮Ω, E, F; ℝ⟯ := 
+sorry
+
 lemma continuous_iff_of_linear {G : Type*} [tG : topological_space G] [add_comm_group G] [module ℝ G] 
   [topological_add_group G] [has_continuous_smul ℝ G] [locally_convex_space ℝ G] 
   (φ : Cc^n⟮Ω, E, F; ℝ⟯ →ₗ[ℝ] G) : 
@@ -301,19 +310,40 @@ variable {n}
 section infinity
 
 lemma differentiable (f : Cc^⊤⟮Ω, E, F; ℝ⟯) : differentiable ℝ f := 
-sorry
+f.cont_diff.differentiable le_top
 
-noncomputable def fderiv (f : Cc^⊤⟮Ω, E, F; ℝ⟯) : Cc^⊤⟮Ω, E, E →L[ℝ] F; ℝ⟯ := 
-⟨fderiv ℝ f, sorry⟩
+protected noncomputable def fderiv (f : Cc^⊤⟮Ω, E, F; ℝ⟯) : Cc^⊤⟮Ω, E, E →L[ℝ] F; ℝ⟯ := 
+of_support_in ℝ (E →L[ℝ] F) ⊤ f.tsupport f.tsupport_subset (f.to_support_in_tsupport ℝ F ⊤).fderiv
 
-noncomputable def fderivₗ : Cc^⊤⟮Ω, E, F; ℝ⟯ →ₗ[ℝ] Cc^⊤⟮Ω, E, E →L[ℝ] F; ℝ⟯ := 
+@[simp] lemma fderiv_apply (f : Cc^⊤⟮Ω, E, F; ℝ⟯) (x : E) : f.fderiv x = fderiv ℝ f x := rfl
+
+protected noncomputable def fderivₗ : Cc^⊤⟮Ω, E, F; ℝ⟯ →ₗ[ℝ] Cc^⊤⟮Ω, E, E →L[ℝ] F; ℝ⟯ := 
 { to_fun := test_function.fderiv,
-  map_add' := sorry,
-  map_smul' := sorry }
+  map_add' := λ f g,
+  begin
+    ext x : 1,
+    exact fderiv_add f.differentiable.differentiable_at
+      g.differentiable.differentiable_at,
+  end,
+  map_smul' := λ a f,
+  begin
+    ext x : 1,
+    exact fderiv_const_smul f.differentiable.differentiable_at _
+  end }
 
-noncomputable def fderivL : Cc^⊤⟮Ω, E, F; ℝ⟯ →L[ℝ] Cc^⊤⟮Ω, E, E →L[ℝ] F; ℝ⟯ := 
-{ to_linear_map := fderivₗ,
-  cont := sorry }
+protected noncomputable def fderivL : Cc^⊤⟮Ω, E, F; ℝ⟯ →L[ℝ] Cc^⊤⟮Ω, E, E →L[ℝ] F; ℝ⟯ := 
+{ to_linear_map := test_function.fderivₗ,
+  cont := 
+  begin
+    change continuous test_function.fderivₗ,
+    rw continuous_iff_of_linear,
+    intros K hK,
+    have : test_function.fderivₗ.comp (of_support_inₗ ℝ F ⊤ K hK) =
+      (of_support_inₗ ℝ (E →L[ℝ] F) ⊤ K hK).comp cont_diff_map_supported_in.fderivₗ,
+    { sorry },
+    rw this,
+    sorry
+  end }
 
 end infinity
 

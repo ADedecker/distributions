@@ -386,8 +386,6 @@ protected noncomputable def fderiv (f : B^⊤⟮E, F; 𝕜⟯) : B^⊤⟮E, E �
     rwa [iterated_fderiv_succ_eq_comp_right, linear_isometry_equiv.norm_map] at hC
   end⟩
 
-#check bounded_cont_diff_map.fderiv
-
 @[simp] protected lemma fderiv_apply (f : B^⊤⟮E, F; 𝕜⟯) : 
   f.fderiv x = fderiv 𝕜 f x := rfl
 
@@ -402,7 +400,7 @@ protected noncomputable def fderivₗ : B^⊤⟮E, F; 𝕜⟯ →ₗ[𝕜] B^⊤
   map_smul' := λ a f,
   begin
     ext x : 1,
-    exact fderiv_const_smul (f.cont_diff.differentiable le_top).differentiable_at _
+    exact fderiv_const_smul f.differentiable.differentiable_at _
   end }
 
 @[simp] protected lemma fderivₗ_apply (f : B^⊤⟮E, F; 𝕜⟯) : 

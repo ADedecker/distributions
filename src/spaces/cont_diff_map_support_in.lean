@@ -258,7 +258,7 @@ end zero
 section infinity
 
 lemma differentiable (f : cont_diff_map_supported_in 𝕜 E F K ⊤) : differentiable 𝕜 f := 
-sorry
+f.cont_diff.differentiable le_top
 
 noncomputable def fderiv (f : cont_diff_map_supported_in 𝕜 E F K ⊤) : 
   cont_diff_map_supported_in 𝕜 E (E →L[𝕜] F) K ⊤ := 
@@ -268,14 +268,23 @@ of_support_subset (cont_diff_top_iff_fderiv.mp f.cont_diff).2
 noncomputable def fderivₗ : cont_diff_map_supported_in 𝕜 E F K ⊤ 
   →ₗ[𝕜] cont_diff_map_supported_in 𝕜 E (E →L[𝕜] F) K ⊤ := 
 { to_fun := cont_diff_map_supported_in.fderiv,
-  map_add' := sorry,
-  map_smul' := sorry }
+  map_add' := λ f g,
+  begin
+    ext x : 1,
+    exact fderiv_add f.differentiable.differentiable_at
+      g.differentiable.differentiable_at,
+  end,
+  map_smul' := λ a f,
+  begin
+    ext x : 1,
+    exact fderiv_const_smul f.differentiable.differentiable_at _
+  end }
 
 noncomputable def fderivL : cont_diff_map_supported_in 𝕜 E F K ⊤ 
   →L[𝕜] cont_diff_map_supported_in 𝕜 E (E →L[𝕜] F) K ⊤ := 
 { to_linear_map := fderivₗ,
   cont := continuous_induced_rng 
-    (bounded_cont_diff_map.fderivL 𝕜 E F ∘L to_bounded_cont_diff_mapL).continuous }
+    (bounded_cont_diff_map.fderivL ∘L to_bounded_cont_diff_mapL).continuous }
 
 end infinity
 
