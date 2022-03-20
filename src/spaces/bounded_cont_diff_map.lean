@@ -278,6 +278,21 @@ lemma continuous_iff {X : Type*} [topological_space X] (φ : X → B^n⟮E, F; �
 ⟨ λ hφ i hi, (bounded_cont_diff_map.iterated_fderivL hi).continuous.comp hφ, 
   λ h, continuous_infi_rng (λ i, continuous_infi_rng $ λ hi, continuous_induced_rng (h i hi)) ⟩
 
+protected lemma continuous_of_commutes {𝕜' E' F' : Type*} [normed_group E'] [normed_group F'] 
+  [nondiscrete_normed_field 𝕜'] [normed_space 𝕜' E'] [normed_space 𝕜' F'] 
+  (φ : B^n⟮E, F; 𝕜⟯ → B^n⟮E', F'; 𝕜'⟯) 
+  (ψ : Π (i : ℕ), (E →ᵇ (E [×i]→L[𝕜] F)) → E' →ᵇ (E' [×i]→L[𝕜'] F'))
+  (hcont : ∀ (i : ℕ) (hi : ↑i ≤ n), continuous $ ψ i)
+  (hcomm : ∀ (i : ℕ) (hi : ↑i ≤ n), 
+    bounded_cont_diff_map.iterated_fderiv hi ∘ φ = ψ i ∘ bounded_cont_diff_map.iterated_fderiv hi) :
+  continuous φ :=
+begin
+  rw continuous_iff,
+  intros i hi,
+  rw hcomm i hi,
+  exact (hcont i hi).comp (bounded_cont_diff_map.iterated_fderivL hi).continuous
+end
+
 instance : topological_add_group (B^n⟮E, F; 𝕜⟯) :=
 topological_add_group_infi 
   (λ i, topological_add_group_infi $ λ hi, topological_add_group_induced _)

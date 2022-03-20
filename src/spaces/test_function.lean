@@ -137,6 +137,10 @@ Inf { t | 𝓣₀ ≤ t ∧ @topological_add_group _ t _ ∧ @has_continuous_smu
 
 local notation `𝓣` := test_function.topology
 
+private lemma tmp_topology_le_topology : 
+  (𝓣₀ : topological_space (Cc^n⟮Ω, E, F; ℝ⟯)) ≤ 𝓣 := 
+le_Inf (λ t ht, ht.1)
+
 private lemma topology_le_iff {t : topological_space (Cc^n⟮Ω, E, F; ℝ⟯)} 
   (h₁ : @topological_add_group _ t _) (h₂ : @has_continuous_smul ℝ _ _ _ t) 
   (h₃ : @locally_convex_space ℝ _ _ _ _ t) :
@@ -171,6 +175,11 @@ local notation `𝓣₁` := basis_topology
 private lemma topology_eq_basis_topology : (𝓣 : topological_space Cc^n⟮Ω, E, F; ℝ⟯) = 𝓣₁ :=
 sorry
 
+private lemma continuous_of_support_in {K : compacts E} {hK : ↑K ⊆ Ω} : 
+  @continuous _ _ _ 𝓣 (of_support_in ℝ F n K hK) :=
+@continuous.comp _ _ _ _ 𝓣₀ 𝓣 _ _ (continuous_id_of_le tmp_topology_le_topology) 
+  (continuous_supr_rng $ continuous_supr_rng $ continuous_coinduced_rng)
+
 attribute [instance] test_function.topology
 
 instance : topological_add_group Cc^n⟮Ω, E, F; ℝ⟯ := 
@@ -181,6 +190,15 @@ has_continuous_smul_Inf (λ t ht, ht.2.2.1)
 
 instance : locally_convex_space ℝ Cc^n⟮Ω, E, F; ℝ⟯ := 
 sorry
+
+variables (F n)
+
+noncomputable def of_support_inL (K : compacts E) (hK : ↑K ⊆ Ω) :
+  cont_diff_map_supported_in ℝ E F K n →L[ℝ] Cc^n⟮Ω, E, F; ℝ⟯ :=
+{ to_linear_map := of_support_inₗ ℝ F n K hK,
+  cont := continuous_of_support_in } 
+
+variables {F n}
 
 lemma continuous_iff_of_linear {G : Type*} [tG : topological_space G] [add_comm_group G] [module ℝ G] 
   [topological_add_group G] [has_continuous_smul ℝ G] [locally_convex_space ℝ G] 
@@ -204,6 +222,21 @@ begin
           forall_congr (λ K, forall_congr $ λ hK, by rw [linear_map.coe_comp, induced_compose])
   ... ↔ ∀ (K : compacts E) (hK : ↑K ⊆ Ω), continuous (φ ∘ₗ of_support_inₗ ℝ F n K hK) : 
           forall_congr (λ K, forall_congr $ λ hK, continuous_iff_le_induced.symm),
+end
+
+-- TODO : can we have different domains ?
+lemma continuous_of_commutes_of_linear {F' : Type*} [normed_group F']
+  [normed_space ℝ F'] (φ : Cc^n⟮Ω, E, F; ℝ⟯ →ₗ[ℝ] Cc^n⟮Ω, E, F'; ℝ⟯) 
+  (ψ : Π (K : compacts E) (hK : ↑K ⊆ Ω), 
+    cont_diff_map_supported_in ℝ E F K n →L[ℝ] cont_diff_map_supported_in ℝ E F' K n)
+  (hcomm : ∀ (K : compacts E) (hK : ↑K ⊆ Ω), 
+    φ ∘ₗ of_support_inₗ ℝ F n K hK = of_support_inₗ ℝ F' n K hK ∘ₗ ↑(ψ K hK)) :
+  continuous φ :=
+begin
+  rw continuous_iff_of_linear,
+  intros K hK,
+  rw hcomm K hK,
+  exact ((of_support_inL F' n K hK).comp (ψ K hK)).continuous
 end
 
 lemma continuous_iff_of_linear_of_normed_codomain' {G : Type*} [normed_group G] 

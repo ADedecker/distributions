@@ -195,6 +195,23 @@ noncomputable def to_bounded_cont_diff_mapL :
 { to_linear_map := to_bounded_cont_diff_mapₗ,
   cont := continuous_induced_dom }
 
+lemma continuous_iff {X : Type*} [topological_space X] 
+  (φ : X → cont_diff_map_supported_in 𝕜 E F K n) : 
+  continuous φ ↔ continuous 
+    (cont_diff_map_supported_in.to_bounded_cont_diff_map ∘ φ) :=
+⟨λ hφ, to_bounded_cont_diff_mapL.continuous.comp hφ, continuous_induced_rng⟩
+
+lemma continuous_of_commutes {𝕜' E' F' : Type*} [normed_group E'] [normed_group F']
+  [nondiscrete_normed_field 𝕜'] [normed_space 𝕜' E'] [normed_space 𝕜' F'] {K' : compacts E'}
+  (φ : cont_diff_map_supported_in 𝕜 E F K n → cont_diff_map_supported_in 𝕜' E' F' K' n)
+  (ψ : B^n⟮E,F;𝕜⟯ → B^n⟮E',F';𝕜'⟯) (hcont : continuous ψ)
+  (hcomm : to_bounded_cont_diff_map ∘ φ = ψ ∘ to_bounded_cont_diff_map) :
+  continuous φ :=
+begin
+  rw [continuous_iff, hcomm],
+  exact hcont.comp to_bounded_cont_diff_mapL.continuous
+end
+
 protected def cast_of_le {k : with_top ℕ} (hkn : k ≤ n) (f : cont_diff_map_supported_in 𝕜 E F K n) :
   cont_diff_map_supported_in 𝕜 E F K k :=
 ⟨f, f.cont_diff.of_le hkn, f.supported_in⟩
