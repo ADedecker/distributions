@@ -190,7 +190,7 @@ topological_add_group_induced _
 instance : has_continuous_smul 𝕜 (cont_diff_map_supported_in 𝕜 E F K n) :=
 has_continuous_smul_induced _
 
-noncomputable def to_bounded_cont_diff_mapL : 
+noncomputable! def to_bounded_cont_diff_mapL : 
   cont_diff_map_supported_in 𝕜 E F K n →L[𝕜] (B^n⟮E,F;𝕜⟯) :=
 { to_linear_map := to_bounded_cont_diff_mapₗ,
   cont := continuous_induced_dom }
@@ -222,7 +222,7 @@ protected def cast_of_leₗ {k : with_top ℕ} (hkn : k ≤ n) :
   map_add' := λ f g, by ext; refl,
   map_smul' := λ c f, by ext; refl }
 
-protected noncomputable def cast_of_leL {k : with_top ℕ} (hkn : k ≤ n) :
+protected noncomputable! def cast_of_leL {k : with_top ℕ} (hkn : k ≤ n) :
   (cont_diff_map_supported_in 𝕜 E F K n) →L[𝕜] (cont_diff_map_supported_in 𝕜 E F K k) :=
 { to_linear_map := cont_diff_map_supported_in.cast_of_leₗ hkn,
   cont := continuous_induced_rng 
@@ -263,7 +263,7 @@ lemma le_norm {f : cont_diff_map_supported_in 𝕜 E F K 0} (x : E) : ∥f x∥ 
 bounded_continuous_function.norm_coe_le_norm 
   (bounded_cont_diff_map.to_bounded_continuous_function 𝕜 E F 0 (to_bounded_cont_diff_mapL f)) x
 
-noncomputable instance : normed_space 𝕜 (cont_diff_map_supported_in 𝕜 E F K 0) :=
+noncomputable! instance : normed_space 𝕜 (cont_diff_map_supported_in 𝕜 E F K 0) :=
 { norm_smul_le := λ c f, 
   begin
     rw [norm_def, norm_def, continuous_linear_map.map_smul],
@@ -330,7 +330,7 @@ lemma coe_fn_to_Lpₗ [measurable_space 𝕜] [opens_measurable_space 𝕜]
   to_Lpₗ n p μ f =ᵐ[μ] f :=
 (f.mem_ℒp p μ).coe_fn_to_Lp
 
-noncomputable def to_Lp_zero [measurable_space 𝕜] [opens_measurable_space 𝕜] 
+noncomputable! def to_Lp_zero [measurable_space 𝕜] [opens_measurable_space 𝕜] 
   {m : measurable_space E} [opens_measurable_space E] [measurable_space F] 
   [second_countable_topology F] [borel_space F] (p : ℝ≥0∞) (μ : measure E) [fact (1 ≤ p)]
   [is_finite_measure_on_compacts μ] : 
@@ -356,7 +356,7 @@ noncomputable def to_Lp_zero [measurable_space 𝕜] [opens_measurable_space �
     { rw [f.supported_in _ ha, norm_zero] }
   end }
 
-noncomputable def to_Lp [measurable_space 𝕜] [opens_measurable_space 𝕜] 
+noncomputable! def to_Lp [measurable_space 𝕜] [opens_measurable_space 𝕜] 
   {m : measurable_space E} [opens_measurable_space E] [measurable_space F] 
   [second_countable_topology F] [borel_space F] (p : ℝ≥0∞) (μ : measure E) [fact (1 ≤ p)]
   [is_finite_measure_on_compacts μ] : 

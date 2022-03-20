@@ -331,7 +331,8 @@ protected def cast_of_leₗ {k : with_top ℕ} (hkn : k ≤ n) :
   map_add' := λ f g, by ext; refl,
   map_smul' := λ c f, by ext; refl }
 
-protected noncomputable def cast_of_leL {k : with_top ℕ} (hkn : k ≤ n) :
+-- TODO : why do I need the `!` ?
+protected noncomputable! def cast_of_leL {k : with_top ℕ} (hkn : k ≤ n) :
   B^n⟮E, F; 𝕜⟯ →L[𝕜] B^k⟮E, F; 𝕜⟯ :=
 { to_linear_map := bounded_cont_diff_map.cast_of_leₗ 𝕜 E F hkn,
   cont := continuous_infi_rng (λ i, continuous_infi_rng $ λ hi, continuous_induced_rng 
@@ -374,7 +375,7 @@ noncomputable instance : normed_group (B^0⟮E, F; 𝕜⟯) :=
 
 @[simp] lemma norm_def {f : B^0⟮E, F; 𝕜⟯} : ∥f∥ = ∥to_bounded_continuous_function 𝕜 E F 0 f∥ := rfl
 
-noncomputable instance : normed_space 𝕜 (B^0⟮E, F; 𝕜⟯) :=
+noncomputable! instance : normed_space 𝕜 (B^0⟮E, F; 𝕜⟯) :=
 { norm_smul_le := λ c f, 
   begin
     rw [norm_def, norm_def, continuous_linear_map.map_smul],

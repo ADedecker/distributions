@@ -48,6 +48,6 @@ section dderiv -- This will be generalized to fderiv, but I want to do some test
 
 variables (Ω : set ℝ) (F : Type*) [normed_group F] [normed_space ℝ F]
 
-def dderivₗ : 𝓓' Ω F ⊤ →ₗ[ℝ] 𝓓' Ω F ⊤ :=
+--def dderivₗ : 𝓓' Ω F ⊤ →ₗ[ℝ] 𝓓' Ω F ⊤ :=
 
 end dderiv
