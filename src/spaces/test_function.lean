@@ -369,13 +369,8 @@ protected noncomputable def fderivL : Cc^⊤⟮Ω, E, F; ℝ⟯ →L[ℝ] Cc^⊤
   cont := 
   begin
     change continuous test_function.fderivₗ,
-    rw continuous_iff_of_linear,
-    intros K hK,
-    have : test_function.fderivₗ.comp (of_support_inₗ ℝ F ⊤ K hK) =
-      (of_support_inₗ ℝ (E →L[ℝ] F) ⊤ K hK).comp cont_diff_map_supported_in.fderivₗ,
-    { sorry },
-    rw this,
-    sorry
+    exact continuous_of_commutes_of_linear _ 
+      (λ K hK, cont_diff_map_supported_in.fderivL) (λ K hK, rfl)
   end }
 
 end infinity
