@@ -68,6 +68,8 @@ compact_of_is_closed_subset hsupp (is_closed_tsupport _) (iterated_fderiv_tsuppo
 lemma continuous.mem_ℒp_of_has_compact_support {α E : Type*} [hα : nonempty α]
   [topological_space α] {m : measurable_space α} [t2_space α] [opens_measurable_space α] 
   [normed_group E] [measurable_space E] [borel_space E]
+  [second_countable_topology_either α E]  -- TODO : this should be removable because we are integrating
+                                          -- on a compact subset
   {f : α → E} (hf : continuous f) (hsupp : has_compact_support f)
   (p : ℝ≥0∞) (μ : measure α) [is_finite_measure_on_compacts μ]:
   mem_ℒp f p μ := 
@@ -76,7 +78,7 @@ begin
     from hf.norm.bdd_above_range_of_has_compact_support hsupp.norm,
   refine mem_ℒp.of_le 
     (mem_ℒp_indicator_const p hsupp.measurable_set (⨆ x, ∥f x∥) (or.inr hsupp.measure_lt_top.ne))
-    (hf.ae_measurable μ) (ae_of_all _ $ λ x, _),
+    hf.ae_strongly_measurable (ae_of_all _ $ λ x, _),
   rw norm_indicator_eq_indicator_norm,
   refine set.le_indicator (λ a _, _) (λ a, _) x,
   { rw real.norm_of_nonneg (le_csupr_of_le this hα.some (norm_nonneg _)),

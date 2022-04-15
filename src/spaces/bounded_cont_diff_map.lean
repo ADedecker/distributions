@@ -358,7 +358,7 @@ begin
   rw infi_range,
   change (⨅ _ _, _) = _,
   simp_rw infi_range,
-  refine le_antisymm (binfi_le 0 _) (le_infi $ λ i, le_infi $ λ hi, _),
+  refine le_antisymm (binfi_le' 0 _) (le_infi $ λ i, le_infi $ λ hi, _),
   convert le_refl _,
   rw ← nat.le_zero_iff, exact_mod_cast hi
 end
