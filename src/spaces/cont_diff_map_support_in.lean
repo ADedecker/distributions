@@ -7,6 +7,21 @@ open_locale bounded_cont_diff_map topological_space ennreal bounded_continuous_f
 
 section prelim
 
+-- Commutativity should not be needed, but it's sufficient for now
+@[to_additive]
+theorem continuous_iff_continuous_at_one {G H hom : Type*} [comm_group G] [comm_group H] 
+  [topological_space G] [topological_space H] [topological_group G] [topological_group H] 
+  [monoid_hom_class hom G H] {f : hom} :
+  continuous f ↔ continuous_at f 1 :=
+begin
+  refine ⟨λ h, h.continuous_at, λ h, _⟩,
+  letI : uniform_space G := topological_group.to_uniform_space G,
+  letI : uniform_group G := topological_group_is_uniform,
+  letI : uniform_space H := topological_group.to_uniform_space H,
+  letI : uniform_group H := topological_group_is_uniform,
+  exact uniform_continuous.continuous (uniform_continuous_of_continuous_at_one f h)
+end
+
 theorem continuous_multilinear_map.ext_iff {ι 𝕜 F : Type*} {E : ι → Type*} [decidable_eq ι] [nondiscrete_normed_field 𝕜] 
   [Π i, normed_group (E i)] [normed_group F] [Π i, normed_space 𝕜 (E i)] [normed_space 𝕜 F] 
   {f g : continuous_multilinear_map 𝕜 E F} : f = g ↔ ∀ x, f x = g x :=
@@ -376,10 +391,27 @@ variables {E F G : Type*} [normed_group E] [normed_group F] [normed_group G]
   [normed_space ℝ E] [normed_space ℝ F] [normed_space ℝ G] {K : compacts E} 
   {n : with_top ℕ} {f g : cont_diff_map_supported_in ℝ E F K n} {x : E}
 
+#check linear_map.bound_of_ball_bound
+#check linear_map.smul_apply
+#check seminorm
+
 lemma continuous_iff_of_linear (T : cont_diff_map_supported_in ℝ E F K n →ₗ[ℝ] G) : 
   continuous T ↔ ∃ (p : ℕ), ∃ C > 0, ∀ f : cont_diff_map_supported_in ℝ E F K n, 
     ∥T f∥ ≤ C * (⨆ (i ≤ p) (hin : ↑i ≤ n) (x : E), ∥iterated_fderiv ℝ i f x∥) :=
 begin
+  rw [continuous_iff_continuous_at_zero, continuous_at, map_zero],
+  rw cont_diff_map_supported_in.has_basis_zero.tendsto_iff metric.nhds_basis_ball,
+  split,
+  { intros H, 
+    rcases H 1 one_pos with ⟨⟨p, ε⟩, hε, H⟩,
+    have hε' : 0 < ε⁻¹ := inv_pos.mpr hε,
+    refine ⟨p, ε⁻¹, hε', λ f, _⟩,
+    rw [← div_eq_inv_mul, le_div_iff hε, mul_comm, ← real.norm_of_nonneg hε.le, 
+        ← norm_smul ε (T f), ← T.map_smul _],
+    let N : ℝ := ⨆ (i ≤ p) (hin : ↑i ≤ n) (x : E), ∥iterated_fderiv ℝ i f x∥,
+    have hN : N ≠ 0 := 
+    rw real.mul_supr_of_nonneg hε'.le,
+    refine le_csupr_of_le _ _ _, },
   sorry
 end
 
