@@ -229,21 +229,21 @@ begin
   exact hcont.comp to_bounded_cont_diff_mapL.continuous
 end
 
-protected def cast_of_le {k : with_top ℕ} (hkn : k ≤ n) (f : cont_diff_map_supported_in 𝕜 E F K n) :
+protected def of_le {k : with_top ℕ} (hkn : k ≤ n) (f : cont_diff_map_supported_in 𝕜 E F K n) :
   cont_diff_map_supported_in 𝕜 E F K k :=
 ⟨f, f.cont_diff.of_le hkn, f.supported_in⟩
 
-protected def cast_of_leₗ {k : with_top ℕ} (hkn : k ≤ n) :
+protected def of_leₗ {k : with_top ℕ} (hkn : k ≤ n) :
   cont_diff_map_supported_in 𝕜 E F K n →ₗ[𝕜] cont_diff_map_supported_in 𝕜 E F K k :=
-{ to_fun := cont_diff_map_supported_in.cast_of_le hkn,
+{ to_fun := cont_diff_map_supported_in.of_le hkn,
   map_add' := λ f g, by ext; refl,
   map_smul' := λ c f, by ext; refl }
 
-protected noncomputable! def cast_of_leL {k : with_top ℕ} (hkn : k ≤ n) :
+protected noncomputable! def of_leL {k : with_top ℕ} (hkn : k ≤ n) :
   (cont_diff_map_supported_in 𝕜 E F K n) →L[𝕜] (cont_diff_map_supported_in 𝕜 E F K k) :=
-{ to_linear_map := cont_diff_map_supported_in.cast_of_leₗ hkn,
+{ to_linear_map := cont_diff_map_supported_in.of_leₗ hkn,
   cont := continuous_induced_rng 
-    ((bounded_cont_diff_map.cast_of_leL 𝕜 E F hkn).comp (to_bounded_cont_diff_mapL)).continuous }
+    ((bounded_cont_diff_map.of_leL 𝕜 E F hkn).comp (to_bounded_cont_diff_mapL)).continuous }
 
 protected noncomputable def iterated_fderivL {i : ℕ} (hi : (i : with_top ℕ) ≤ n) : 
   (cont_diff_map_supported_in 𝕜 E F K n) →L[𝕜] (E →ᵇ (E [×i]→L[𝕜] F)) :=
@@ -381,7 +381,7 @@ noncomputable! def to_Lp [measurable_space 𝕜] [opens_measurable_space 𝕜]
 { to_fun := λ f, (f.mem_ℒp p μ).to_Lp f,
   map_add' := λ f g, (f.mem_ℒp p μ).to_Lp_add (g.mem_ℒp p μ),
   map_smul' := λ c f, (f.mem_ℒp p μ).to_Lp_const_smul c,
-  cont := ((to_Lp_zero p μ).comp (cont_diff_map_supported_in.cast_of_leL (zero_le _))).continuous }  
+  cont := ((to_Lp_zero p μ).comp (cont_diff_map_supported_in.of_leL (zero_le _))).continuous }  
 
 end compact
 
@@ -409,9 +409,7 @@ begin
     rw [← div_eq_inv_mul, le_div_iff hε, mul_comm, ← real.norm_of_nonneg hε.le, 
         ← norm_smul ε (T f), ← T.map_smul _],
     let N : ℝ := ⨆ (i ≤ p) (hin : ↑i ≤ n) (x : E), ∥iterated_fderiv ℝ i f x∥,
-    have hN : N ≠ 0 := 
-    rw real.mul_supr_of_nonneg hε'.le,
-    refine le_csupr_of_le _ _ _, },
+    sorry },
   sorry
 end
 

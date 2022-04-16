@@ -321,20 +321,20 @@ end
 
 variables {n}
 
-protected def cast_of_le {k : with_top ℕ} (hkn : k ≤ n) (f : B^n⟮E, F; 𝕜⟯) :
+protected def of_le {k : with_top ℕ} (hkn : k ≤ n) (f : B^n⟮E, F; 𝕜⟯) :
   B^k⟮E, F; 𝕜⟯ :=
 ⟨f, f.cont_diff.of_le hkn, λ i hi, f.bounded (hi.trans hkn)⟩
 
-protected def cast_of_leₗ {k : with_top ℕ} (hkn : k ≤ n) :
+protected def of_leₗ {k : with_top ℕ} (hkn : k ≤ n) :
   B^n⟮E, F; 𝕜⟯ →ₗ[𝕜] B^k⟮E, F; 𝕜⟯ :=
-{ to_fun := bounded_cont_diff_map.cast_of_le 𝕜 E F hkn,
+{ to_fun := bounded_cont_diff_map.of_le 𝕜 E F hkn,
   map_add' := λ f g, by ext; refl,
   map_smul' := λ c f, by ext; refl }
 
 -- TODO : why do I need the `!` ?
-protected noncomputable! def cast_of_leL {k : with_top ℕ} (hkn : k ≤ n) :
+protected noncomputable! def of_leL {k : with_top ℕ} (hkn : k ≤ n) :
   B^n⟮E, F; 𝕜⟯ →L[𝕜] B^k⟮E, F; 𝕜⟯ :=
-{ to_linear_map := bounded_cont_diff_map.cast_of_leₗ 𝕜 E F hkn,
+{ to_linear_map := bounded_cont_diff_map.of_leₗ 𝕜 E F hkn,
   cont := continuous_infi_rng (λ i, continuous_infi_rng $ λ hi, continuous_induced_rng 
     (bounded_cont_diff_map.iterated_fderivL $ hi.trans hkn).continuous) }
 
