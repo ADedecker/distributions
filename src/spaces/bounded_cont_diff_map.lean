@@ -8,6 +8,16 @@ open_locale bounded_continuous_function topological_space nnreal
 
 section prelim
 
+lemma infi_binfi_le {ι α : Type*} [partial_order ι] [complete_lattice α] {f : ι → α} :
+  (⨅ i (j ≤ i), f j) = (⨅ i, f i) :=
+le_antisymm (le_infi $ λ i, infi_le_of_le i $ binfi_le' i le_rfl) (le_infi $ λ i, le_infi₂ $ λ j hj, infi_le f j)
+
+lemma binfi_le_binfi_le {ι α : Type*} [partial_order ι] [complete_lattice α] {f : ι → α} {n : ι} :
+  (⨅ (i ≤ n) (j ≤ i), f j) = (⨅ (i ≤ n), f i) :=
+le_antisymm 
+  (le_infi₂ $ λ i hi, infi_le_of_le i $ infi_le_of_le hi $ binfi_le' i le_rfl) 
+  (le_infi₂ $ λ i hi, le_infi₂ $ λ j hj, binfi_le' j $ hj.trans hi)
+
 noncomputable def _root_.continuous_linear_equiv.comp_left_continuous_bounded {𝕜 : Type*} 
   (α : Type*) {β γ : Type*} [topological_space α] [nondiscrete_normed_field 𝕜] 
   {_ : normed_group β} {_ : normed_group γ} [normed_space 𝕜 β] [normed_space 𝕜 γ] (g : β ≃L[𝕜] γ) :
@@ -226,6 +236,12 @@ protected noncomputable def uniform_space : uniform_space (B^n⟮E, F; 𝕜⟯) 
 @uniform_space.replace_topology _ bounded_cont_diff_map.topology 
   (⨅ (i : ℕ), (tmp_uniform_space₁ i)) (by rw [to_topological_space_infi]; refl )
 
+--lemma test : (bounded_cont_diff_map.topology : topological_space (B^n⟮E, F; 𝕜⟯)) = 
+--  ⨅ (i : ℕ) (hi : ↑i ≤ n) (j : ℕ) (hj : (j : with_top ℕ) ≤ ↑i), (tmp_topology₀ j $ hj.trans hi) :=
+--le_antisymm 
+--  (le_infi₂ $ λ i hi, le_infi₂ $ λ j hj, binfi_le' j $ hj.trans hi)
+--  (le_infi₂ $ λ i hi, infi_le_of_le i $ infi_le_of_le hi $ binfi_le' i le_rfl) 
+
 private lemma has_basis_zero₀ (i : ℕ) (hi : (i : with_top ℕ) ≤ n) : 
   (@nhds B^n⟮E, F; 𝕜⟯ (tmp_topology₀ i hi) 0).has_basis (λ ε : ℝ, 0 < ε)
   (λ ε, bounded_cont_diff_map.iterated_fderiv hi ⁻¹' metric.ball 0 ε) :=
@@ -337,6 +353,14 @@ protected noncomputable! def of_leL {k : with_top ℕ} (hkn : k ≤ n) :
 { to_linear_map := bounded_cont_diff_map.of_leₗ 𝕜 E F hkn,
   cont := continuous_infi_rng (λ i, continuous_infi_rng $ λ hi, continuous_induced_rng 
     (bounded_cont_diff_map.iterated_fderivL $ hi.trans hkn).continuous) }
+
+--protected lemma topology_eq_infi_induced_of_le :
+--  bounded_cont_diff_map.topology = ⨅ (i : ℕ) (hi : ↑i ≤ n), bounded_cont_diff_map.topology.induced 
+--    (bounded_cont_diff_map.of_leL 𝕜 E F hi) :=
+--begin
+--  simp_rw [bounded_cont_diff_map.topology, induced_infi, tmp_topology₀],
+--  
+--end
 
 section zero
 
