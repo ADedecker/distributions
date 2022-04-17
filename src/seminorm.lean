@@ -136,6 +136,23 @@ def seminorm_family.Union {ι' : ι → Type*} (Q : Π i, seminorm_family 𝕜 E
 --    sorry }
 --end
 
+lemma with_seminorms_infi {ι' : ι → Type*} [hι : nonempty ι] [hι' : ∀ i, nonempty (ι' i)] 
+  {Q : Π i, seminorm_family 𝕜 E (ι' i)} 
+  {T : ι → topological_space E} (H : ∀ i, @with_seminorms 𝕜 E (ι' i) _ _ _ _ (Q i) (T i))
+  (H' : ∀ i, @topological_add_group E (T i) _) :
+  @with_seminorms 𝕜 E (Σ i, ι' i) _ _ _ (hι.cases_on $ λ i, nonempty_sigma.mpr ⟨i, hι' i⟩) 
+  (seminorm_family.Union Q) (⨅ i, T i) :=
+begin
+  simp [seminorm_family.with_seminorms_iff_nhds_eq_infi] at H,
+  letI : nonempty (Σ i, ι' i) := (hι.cases_on $ λ i, nonempty_sigma.mpr ⟨i, hι' i⟩),
+  letI : topological_space E := ⨅ i, T i,
+  letI : topological_add_group E := topological_add_group_infi H',
+  rw [(seminorm_family.Union Q).with_seminorms_iff_nhds_eq_infi, nhds_infi, infi_sigma],
+  refine infi_congr (λ i, _),
+  rw [H i],
+  exact infi_congr (λ hi, rfl)
+end
+
 --lemma with_seminorms_infi {ι' : ι → Type*} [hι' : ∀ i, nonempty (ι' i)] {Q : Π i, seminorm_family 𝕜 E (ι' i)} 
 --  {T : ι → topological_space E} (H : ∀ i, @with_seminorms 𝕜 E (ι' i) _ _ _ _ (Q i) (T i))
 --  (H' : ∀ i, @topological_add_group E (T i) _) :
@@ -153,35 +170,5 @@ def seminorm_family.Union {ι' : ι → Type*} (Q : Π i, seminorm_family 𝕜 E
 --end
 
 end any_field
-
-section real
-
-variables {ι E F : Type*} [hι : nonempty ι] [add_comm_group E] [module ℝ E]
-  [add_comm_group F] [module ℝ F] [topological_space F] [topological_add_group F]
-
-lemma with_seminorms_infi {ι' : ι → Type*} [hι' : ∀ i, nonempty (ι' i)] {Q : Π i, seminorm_family ℝ E (ι' i)} 
-  {T : ι → topological_space E} (H : ∀ i, @with_seminorms ℝ E (ι' i) _ _ _ _ (Q i) (T i))
-  (H' : ∀ i, @topological_add_group E (T i) _) :
-  @with_seminorms ℝ E (Σ i, ι' i) _ _ _ (hι.cases_on $ λ i, nonempty_sigma.mpr ⟨i, hι' i⟩) 
-  (seminorm_family.Union Q) (⨅ i, T i) :=
-begin
-  letI : nonempty (Σ i, ι' i) := (hι.cases_on $ λ i, nonempty_sigma.mpr ⟨i, hι' i⟩),
-  letI t : topological_space E := ⨅ i, T i,
-  letI : topological_add_group E := topological_add_group_infi H',
-  letI : locally_convex_space ℝ E := sorry,
-  let ι'' : Type := sorry,
-  let p : seminorm_family ℝ E ι'' := sorry,
-  letI : nonempty ι'' := sorry,
-  letI H : with_seminorms p := sorry, -- All those sorries are true 
-  refine ⟨(_ : t = _)⟩,
-  rw H.topology_eq_with_seminorms,
-  refine seminorm_family.with_seminorms_of_has_basis _ _,
-  simp_rw [nhds_infi, seminorm_family.mem_basis_sets_Union_iff],
-  refine (has_basis_infi (λ i, @seminorm_family.has_basis 𝕜 E (ι' i) _ _ _ _ (T i) (Q i) (H i))).to_has_basis 
-    (λ ⟨I, V⟩ ⟨hI, hV⟩, _) _,
-  --dsimp at this,
-end
-
-end real
 
 --lemma finset.with_seminorms_inf {q : seminorm}
