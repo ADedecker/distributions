@@ -1,6 +1,6 @@
 import analysis.locally_convex.with_seminorms
 
-open topological_space set filter
+open topological_space set filter function
 
 open_locale topological_space
 
@@ -8,6 +8,14 @@ section any_field
 
 variables {ι 𝕜 E F : Type*} [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
   [add_comm_group F] [module 𝕜 F] [topological_space F] [topological_add_group F]
+
+lemma seminorm.ball_eq_preimage_ball (p : seminorm 𝕜 E) {r : ℝ} (hr : 0 < r) : 
+  p.ball 0 r = p ⁻¹' (metric.ball 0 r) :=
+begin
+  ext x,
+  change (_ < _) ↔ (_ < _),
+  rw [sub_zero, dist_zero_right, real.norm_of_nonneg (p.nonneg x)]
+end
 
 lemma seminorm_family.filter_eq_infi [nonempty ι] (p : seminorm_family 𝕜 E ι) : 
   p.module_filter_basis.to_filter_basis.filter = ⨅ i, (𝓝 0).comap (p i) := 
@@ -79,16 +87,13 @@ begin
   exact comap_comap
 end
 
-lemma seminorm.ball_eq_preimage_ball (p : seminorm 𝕜 E) {r : ℝ} (hr : 0 < r) : 
-  p.ball 0 r = p ⁻¹' (metric.ball 0 r) :=
+lemma seminorm_family.with_seminorms_congr {ι' : Type*} [nonempty ι] [nonempty ι']
+  (p : seminorm_family 𝕜 F ι) {f : ι' → ι} (hf : surjective f) [hp : with_seminorms p] :
+  with_seminorms (p ∘ f) :=
 begin
-  ext x,
-  change (_ < _) ↔ (_ < _),
-  rw [sub_zero, dist_zero_right, real.norm_of_nonneg (p.nonneg x)]
+  rw seminorm_family.with_seminorms_iff_nhds_eq_infi at ⊢ hp,
+  rw [hp, infi, infi, ← hf.range_comp]
 end
-
-lemma seminorm_family.with_seminorms_congr
-
 
 def seminorm_family.Union {ι' : ι → Type*} (Q : Π i, seminorm_family 𝕜 E (ι' i)) :
   seminorm_family 𝕜 E (Σ i, ι' i) := λ ⟨i, i'⟩, Q i i'
