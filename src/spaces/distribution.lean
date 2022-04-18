@@ -17,7 +17,7 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E] (Ω : set E)
 
 noncomputable def dirac (x : E) : 𝓓' Ω ℝ n := 
   (bounded_continuous_function.eval_clm ℝ x) ∘L 
-  (bounded_cont_diff_map.to_bounded_continuous_function ℝ E ℝ n) ∘L
+  (bounded_cont_diff_map.to_bounded_continuous_functionL ℝ E ℝ n) ∘L
   (test_function.to_bounded_cont_diff_mapL)
 
 @[simp] lemma dirac_apply (x : E) (f : Cc^n⟮Ω, E, ℝ; ℝ⟯) : dirac Ω n x f = f x := rfl

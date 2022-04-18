@@ -334,20 +334,33 @@ begin
   exact Inter_mono (λ hi, preimage_mono $ metric.ball_subset_ball h)
 end
 
-protected noncomputable def iterated_fderivL {i : ℕ} (hi : (i : with_top ℕ) ≤ n) : 
+protected noncomputable def iterated_fderivL (i : ℕ) : 
   (B^n⟮E, F; 𝕜⟯) →L[𝕜] (E →ᵇ (E [×i]→L[𝕜] F)) :=
 { to_linear_map := bounded_cont_diff_map.iterated_fderivₗ i,
-  cont := continuous_infi_dom 
-    (@continuous_infi_dom _ _ _ _ (λ _, tmp_topology₀ i) _ hi continuous_induced_dom) }
+  cont := 
+  begin
+    by_cases hi : ↑i ≤ n,
+    { exact continuous_infi_dom (@continuous_infi_dom _ _ _ _ 
+        (λ _, tmp_topology₀ i) _ hi continuous_induced_dom) },
+    { refine continuous_of_const (λ f g, _),
+      ext x : 1,
+      change f.iterated_fderiv i x = g.iterated_fderiv i x,
+      rw ← lt_iff_not_ge at hi,
+      rw [bounded_cont_diff_map.iterated_fderiv_apply_of_gt hi,
+          bounded_cont_diff_map.iterated_fderiv_apply_of_gt hi] }
+  end }
 
-@[simp] protected lemma iterated_fderivL_apply {i : ℕ} (hi : (i : with_top ℕ) ≤ n) 
+--continuous_infi_dom 
+--  (@continuous_infi_dom _ _ _ _ (λ _, tmp_topology₀ i) _ hi continuous_induced_dom)
+
+@[simp] protected lemma iterated_fderivL_apply {i : ℕ}
   (f : B^n⟮E, F; 𝕜⟯) : 
-  bounded_cont_diff_map.iterated_fderivL hi f = f.iterated_fderiv i := rfl
+  bounded_cont_diff_map.iterated_fderivL i f = f.iterated_fderiv i := rfl
 
 lemma continuous_iff {X : Type*} [topological_space X] (φ : X → B^n⟮E, F; 𝕜⟯) : 
   continuous φ ↔ ∀ (i : ℕ) (hi : ↑i ≤ n), continuous 
     ((bounded_cont_diff_map.iterated_fderiv i) ∘ φ) :=
-⟨ λ hφ i hi, (bounded_cont_diff_map.iterated_fderivL hi).continuous.comp hφ, 
+⟨ λ hφ i hi, (bounded_cont_diff_map.iterated_fderivL i).continuous.comp hφ, 
   λ h, continuous_infi_rng (λ i, continuous_infi_rng $ λ hi, continuous_induced_rng (h i hi)) ⟩
 
 protected lemma continuous_of_commutes {𝕜' E' F' : Type*} [normed_group E'] [normed_group F'] 
@@ -362,7 +375,7 @@ begin
   rw continuous_iff,
   intros i hi,
   rw hcomm i hi,
-  exact (hcont i hi).comp (bounded_cont_diff_map.iterated_fderivL hi).continuous
+  exact (hcont i hi).comp (bounded_cont_diff_map.iterated_fderivL i).continuous
 end
 
 instance : topological_add_group (B^n⟮E, F; 𝕜⟯) :=
@@ -379,7 +392,7 @@ private noncomputable def to_bounded_continuous_function_aux :
   (B^n⟮E, F; 𝕜⟯) →L[𝕜] (E →ᵇ F) :=
 ((continuous_multilinear_curry_fin0 𝕜 E F).to_continuous_linear_equiv
   .comp_left_continuous_bounded E).to_continuous_linear_map ∘L
-bounded_cont_diff_map.iterated_fderivL (zero_le _)
+bounded_cont_diff_map.iterated_fderivL 0
 
 private lemma to_bounded_continuous_function_aux_spec (f : B^n⟮E, F; 𝕜⟯) (x : E) :
   to_bounded_continuous_function_aux 𝕜 E F n f x = f x := 
@@ -426,7 +439,7 @@ lemma to_bounded_continuous_functionL_eq_iterated_fderivL_zero :
   bounded_cont_diff_map.to_bounded_continuous_functionL 𝕜 E F n =
   ((continuous_multilinear_curry_fin0 𝕜 E F).to_continuous_linear_equiv
     .comp_left_continuous_bounded E).to_continuous_linear_map ∘L
-  bounded_cont_diff_map.iterated_fderivL (zero_le _) := 
+  bounded_cont_diff_map.iterated_fderivL 0 := 
 begin
   ext f x,
   change f x = _,
@@ -473,7 +486,7 @@ protected noncomputable! def of_leL {k : with_top ℕ} (hkn : k ≤ n) :
   cont := 
   begin
     refine continuous_infi_rng (λ i, continuous_infi_rng $ λ hi, continuous_induced_rng _),
-    convert (bounded_cont_diff_map.iterated_fderivL $ hi.trans hkn).continuous using 1,
+    convert (bounded_cont_diff_map.iterated_fderivL i).continuous using 1,
     ext f : 1,
     exact f.iterated_fderiv_of_le 𝕜 E F hkn hi
   end }
@@ -581,7 +594,7 @@ noncomputable def fderivL : B^⊤⟮E, F; 𝕜⟯ →L[𝕜] B^⊤⟮E, E →L[�
       (continuous_linear_map.comp_left_continuous_bounded E 
         (continuous_multilinear_curry_right_equiv' 𝕜 i E F).symm
           .to_continuous_linear_equiv.to_continuous_linear_map).comp 
-      (bounded_cont_diff_map.iterated_fderivL (le_top : (i+1 : with_top ℕ) ≤ ⊤))
+      (bounded_cont_diff_map.iterated_fderivL (i+1))
       with hφ,
     have : bounded_cont_diff_map.iterated_fderiv i ∘ bounded_cont_diff_map.fderivₗ.to_fun = φ,
     { rw hφ,

@@ -245,14 +245,14 @@ protected noncomputable! def of_leL {k : with_top ℕ} (hkn : k ≤ n) :
   cont := continuous_induced_rng 
     ((bounded_cont_diff_map.of_leL 𝕜 E F hkn).comp (to_bounded_cont_diff_mapL)).continuous }
 
-protected noncomputable def iterated_fderivL {i : ℕ} (hi : (i : with_top ℕ) ≤ n) : 
+protected noncomputable def iterated_fderivL (i : ℕ) : 
   (cont_diff_map_supported_in 𝕜 E F K n) →L[𝕜] (E →ᵇ (E [×i]→L[𝕜] F)) :=
-bounded_cont_diff_map.iterated_fderivL hi ∘L to_bounded_cont_diff_mapL
+bounded_cont_diff_map.iterated_fderivL i ∘L to_bounded_cont_diff_mapL
 
 protected lemma has_basis_zero : 
   (𝓝 0 : filter $ cont_diff_map_supported_in 𝕜 E F K n).has_basis 
   (λ Nε : ℕ × ℝ, 0 < Nε.2) (λ Nε, ⋂ (i : ℕ) (hiN : i ≤ Nε.1) (hi : ↑i ≤ n), 
-    cont_diff_map_supported_in.iterated_fderivL hi ⁻¹' metric.ball 0 Nε.2) :=
+    cont_diff_map_supported_in.iterated_fderivL i ⁻¹' metric.ball 0 Nε.2) :=
 begin
   rw [nhds_induced],
   convert bounded_cont_diff_map.has_basis_zero.comap to_bounded_cont_diff_mapₗ,
