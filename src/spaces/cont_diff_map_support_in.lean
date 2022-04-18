@@ -3,7 +3,7 @@ import analysis.normed.group.basic
 import measure_theory.function.lp_space
 
 open topological_space function measure_theory set filter
-open_locale bounded_cont_diff_map topological_space ennreal bounded_continuous_function
+open_locale bounded_cont_diff_map topological_space ennreal bounded_continuous_function nnreal
 
 section prelim
 
@@ -179,6 +179,9 @@ def to_bounded_cont_diff_map (f : cont_diff_map_supported_in 𝕜 E F K n) :
   B^n⟮E,F;𝕜⟯ :=
 ⟨f, f.cont_diff, λ i hi, f.bounded hi⟩
 
+lemma coe_to_bounded_cont_diff_map (f : cont_diff_map_supported_in 𝕜 E F K n) :
+  (f.to_bounded_cont_diff_map : E → F) = f := rfl
+
 lemma to_bounded_cont_diff_map_injective :
   injective (to_bounded_cont_diff_map : cont_diff_map_supported_in 𝕜 E F K n → B^n⟮E,F;𝕜⟯) :=
 begin
@@ -209,14 +212,44 @@ has_continuous_smul_induced _
 
 variables (𝕜 E F K n)
 
-protected noncomputable def seminorm_family : 
+noncomputable def snorms : 
   seminorm_family 𝕜 (cont_diff_map_supported_in 𝕜 E F K n) 
-  (bounded_cont_diff_map.seminorm_index n) :=
-(bounded_cont_diff_map.seminorm_family 𝕜 E F n).comp to_bounded_cont_diff_mapₗ
+  (bounded_cont_diff_map.snorms_ind n) :=
+(bounded_cont_diff_map.snorms 𝕜 E F n).comp to_bounded_cont_diff_mapₗ
 
 variables {𝕜 E F K n}
 
-instance with_seminorms : with_seminorms (cont_diff_map_supported_in.seminorm_family 𝕜 E F K n) :=
+lemma snorms_monotone : 
+  monotone (snorms 𝕜 E F K n) :=
+λ i j hij, seminorm.comp_mono _ (bounded_cont_diff_map.snorms_monotone hij)
+
+#check finset.nonempty.cons_induction
+
+lemma _root_.seminorm.finset_sup_apply' {ι G : Type*} [add_comm_group G] [module 𝕜 G] 
+  (p : ι → seminorm 𝕜 G) (s : finset ι) (hs : s.nonempty) (x : G) :
+  s.sup p x = s.sup' hs (λ i, p i x) :=
+begin
+  refine finset.nonempty.cons_induction _ _ hs,
+  { intros i,
+    rw [finset.sup_singleton, finset.sup'_singleton] },
+  { intros i s his hs ih,
+    rw [finset.sup_cons, finset.sup'_cons hs, seminorm.sup_apply, ih] }
+end
+
+lemma snorms_apply (i : ℕ) (hi : ↑i ≤ n) :
+  snorms 𝕜 E F K n ⟨i, hi⟩ f = ⨆ (j ≤ i) (x ∈ K), ∥iterated_fderiv 𝕜 j f x∥ :=
+begin
+  rw [snorms, bounded_cont_diff_map.snorms, seminorm_family.comp_apply, seminorm.comp_apply,
+      subtype.coe_mk, seminorm.finset_sup_apply' _ _ (finset.nonempty_Icc.mpr (zero_le _))],
+  -- finset.sup'_eq_csupr, sup_ima],
+  sorry
+end
+
+lemma snorms_directed : 
+  directed (≤) (snorms 𝕜 E F K n) :=
+monotone.directed_le snorms_monotone
+
+instance with_seminorms : with_seminorms (cont_diff_map_supported_in.snorms 𝕜 E F K n) :=
 to_bounded_cont_diff_mapₗ.with_seminorms_induced
 
 noncomputable! def to_bounded_cont_diff_mapL : 
@@ -423,6 +456,30 @@ begin
     let N : ℝ := ⨆ (i ≤ p) (hin : ↑i ≤ n) (x : E), ∥iterated_fderiv ℝ i f x∥,
     sorry },
   sorry
+end
+
+#check monotone.directed_le
+#check seminorm.coe_smul
+
+lemma continuous_iff_of_linear' (T : cont_diff_map_supported_in ℝ E F K n →ₗ[ℝ] G) : 
+  continuous T ↔ ∃ (p : ℕ) (C > 0), ∀ f : cont_diff_map_supported_in ℝ E F K n, 
+    ∥T f∥ ≤ C * (⨆ (i ≤ p) (hin : ↑i ≤ n) (x : E), ∥iterated_fderiv ℝ i f x∥) :=
+begin
+  letI : uniform_add_group (cont_diff_map_supported_in ℝ E F K n) := sorry,
+  split,
+  { sorry },
+  { intro h,
+    refine seminorm.continuous_from_bounded (snorms ℝ E F K n) (λ _ : fin 1, norm_seminorm ℝ G) _ _,
+    rw seminorm.is_bounded_iff_of_directed_dom,
+    { intro,
+      rcases h with ⟨p, C, hC, hbound⟩,
+      refine ⟨⟨p, sorry⟩, C.to_nnreal, sorry, _⟩,
+      intros f,
+      convert hbound f, 
+      rw [snorms, seminorm.coe_smul, pi.smul_apply, seminorm_family.comp_apply, seminorm.comp_apply,
+          bounded_cont_diff_map.snorms], 
+      sorry },
+    sorry }
 end
 
 end real

@@ -311,17 +311,22 @@ end
 
 variables (𝕜 E F n)
 
-protected abbreviation seminorm_index : Type* := {i : ℕ // ↑i ≤ n}
+abbreviation snorms_ind : Type* := {i : ℕ // ↑i ≤ n}
 
-instance : has_zero (bounded_cont_diff_map.seminorm_index n) := ⟨⟨0, zero_le _⟩⟩
-instance : inhabited (bounded_cont_diff_map.seminorm_index n) := ⟨0⟩
+instance : has_zero (snorms_ind n) := ⟨⟨0, zero_le _⟩⟩
+instance : inhabited (snorms_ind n) := ⟨0⟩
+instance : lattice (snorms_ind n) := infer_instance
 
-protected noncomputable def seminorm_family : 
-  seminorm_family 𝕜 (B^n⟮E, F; 𝕜⟯) (bounded_cont_diff_map.seminorm_index n) :=
+noncomputable def snorms : 
+  seminorm_family 𝕜 (B^n⟮E, F; 𝕜⟯) (snorms_ind n) :=
 λ i, (finset.Icc 0 (i : ℕ)).sup (λ j, (norm_seminorm 𝕜 (E →ᵇ (E [×j]→L[𝕜] F))).comp 
   (bounded_cont_diff_map.iterated_fderivₗ j))
 
 variables {𝕜 E F n}
+
+lemma snorms_monotone : 
+  monotone (snorms 𝕜 E F n) :=
+λ i j hij, finset.sup_mono (finset.Icc_subset_Icc_right hij)
 
 --protected lemma topology_eq_directed' : (bounded_cont_diff_map.topology : topological_space (B^n⟮E, F; 𝕜⟯)) = 
 --  ⨅ (i : ℕ) (hi : ↑i ≤ n), (finset.univ : finset (fin $ i+1)).inf (λ j, tmp_topology₀ j $ j.2.trans hi) :=
@@ -363,14 +368,12 @@ instance : topological_add_group (B^n⟮E, F; 𝕜⟯) :=
 topological_add_group_infi 
   (λ i, topological_add_group_infi $ λ hi, topological_add_group_induced _)
 
-instance with_seminorms : with_seminorms (bounded_cont_diff_map.seminorm_family 𝕜 E F n) :=
+instance with_seminorms : with_seminorms (bounded_cont_diff_map.snorms 𝕜 E F n) :=
 begin
   rw [seminorm_family.with_seminorms_iff_nhds_eq_infi, bounded_cont_diff_map.topology_eq_directed'], 
   simp_rw [nhds_infi, infi_subtype, nhds_finset_inf],
   refine infi_congr (λ i, infi_congr $ λ hi, _),
-  rw [bounded_cont_diff_map.seminorm_family],
-  dsimp only,
-  rw [seminorm_family.nhds_0_comap_finset_sup, subtype.coe_mk],
+  rw [bounded_cont_diff_map.snorms, seminorm_family.nhds_0_comap_finset_sup, subtype.coe_mk],
   refine finset.inf_congr rfl (λ j hj, _),
   rw [nhds_induced, map_zero, 
       (seminorm_family.with_seminorms_iff_nhds_eq_infi _).mp (norm_with_seminorms 𝕜 (E →ᵇ (E [×j]→L[𝕜] F))),

@@ -1,8 +1,8 @@
 import analysis.locally_convex.with_seminorms
 
-open topological_space set filter function
+open topological_space set filter function nnreal
 
-open_locale topological_space
+open_locale topological_space nnreal
 
 section any_field
 
@@ -52,6 +52,10 @@ end
 def seminorm_family.comp (q : seminorm_family 𝕜 F ι) (f : E →ₗ[𝕜] F) : 
   seminorm_family 𝕜 E ι :=
 λ i, (q i).comp f
+
+def seminorm_family.comp_apply (q : seminorm_family 𝕜 F ι) (i : ι) (f : E →ₗ[𝕜] F) : 
+  q.comp f i = (q i).comp f :=
+rfl
 
 lemma seminorm.sup_comp (p q : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : 
   (p ⊔ q).comp f = p.comp f ⊔ q.comp f := rfl
@@ -157,6 +161,23 @@ begin
     exact λ V, mem_of_mem_nhds },
   { intros i t hit h,
     rw [finset.sup_insert, finset.inf_insert, seminorm.nhds_0_comap_sup, h] }
+end
+
+lemma seminorm.is_bounded_iff_of_directed_dom [nonempty ι] {ι' : Type*}
+  (p : seminorm_family 𝕜 E ι) (q : seminorm_family 𝕜 F ι') (f : E →ₗ[𝕜] F) 
+  (h : directed (≤) p) : 
+  seminorm.is_bounded p q f ↔ ∀ j, ∃ i : ι, ∃ C : ℝ≥0, C ≠ 0 ∧ (q j).comp f ≤ C • (p i) :=
+begin
+  rw [seminorm.is_bounded, forall_congr],
+  intros j,
+  split,
+  { rintros ⟨s, C, hC, hle⟩,
+    rcases h.finset_le s with ⟨i, hi⟩,
+    rw ← finset.sup_le_iff at hi,
+    exact ⟨i, C, hC, hle.trans (seminorm.smul_le_smul hi le_rfl)⟩ },
+  { rintros ⟨i, C, hC, hle⟩,
+    refine ⟨{i}, C, hC, _⟩,
+    rwa finset.sup_singleton }
 end
 
 --lemma with_seminorms_sup_of_fintype [fintype ι] [hι : nonempty ι] 
