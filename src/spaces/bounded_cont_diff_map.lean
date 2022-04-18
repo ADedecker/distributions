@@ -4,10 +4,20 @@ import analysis.seminorm
 import ..seminorm
 import ..bases
 
+.
+
 open set filter function
 open_locale bounded_continuous_function topological_space nnreal
 
 section prelim
+
+lemma nhds_finset_inf {ι α : Type*} {t : ι → topological_space α} {s : finset ι} {x : α} : 
+  @nhds α (s.inf t) x = s.inf (λ i, @nhds α (t i) x) :=
+begin
+  rw [s.inf_eq_infi, s.inf_eq_infi, nhds_infi],
+  refine infi_congr (λ i, _),
+  rw nhds_infi
+end
 
 lemma infi_binfi_le {ι α : Type*} [partial_order ι] [complete_lattice α] {f : ι → α} :
   (⨅ i (j ≤ i), f j) = (⨅ i, f i) :=
@@ -288,6 +298,31 @@ le_antisymm
   (le_infi₂ $ λ i hi, le_infi₂ $ λ j hj, binfi_le' j $ hj.trans hi)
   (le_infi₂ $ λ i hi, infi_le_of_le i $ infi_le_of_le hi $ binfi_le' i le_rfl) 
 
+protected lemma topology_eq_directed' : (bounded_cont_diff_map.topology : topological_space (B^n⟮E, F; 𝕜⟯)) = 
+  ⨅ (i : ℕ) (hi : ↑i ≤ n), (finset.Icc 0 i).inf tmp_topology₀ :=
+begin
+  rw bounded_cont_diff_map.topology_eq_directed,
+  refine infi_congr (λ i, infi_congr $ λ hi, _),
+  rw finset.inf_eq_infi,
+  refine infi_congr (λ j, infi_congr_Prop _ (λ _, rfl)),
+  rw [finset.mem_Icc, with_top.coe_le_coe, iff_and_self],
+  exact λ _, zero_le _
+end
+
+variables (𝕜 E F n)
+
+protected abbreviation seminorm_index : Type* := {i : ℕ // ↑i ≤ n}
+
+instance : has_zero (bounded_cont_diff_map.seminorm_index n) := ⟨⟨0, zero_le _⟩⟩
+instance : inhabited (bounded_cont_diff_map.seminorm_index n) := ⟨0⟩
+
+protected noncomputable def seminorm_family : 
+  seminorm_family 𝕜 (B^n⟮E, F; 𝕜⟯) (bounded_cont_diff_map.seminorm_index n) :=
+λ i, (finset.Icc 0 (i : ℕ)).sup (λ j, (norm_seminorm 𝕜 (E →ᵇ (E [×j]→L[𝕜] F))).comp 
+  (bounded_cont_diff_map.iterated_fderivₗ j))
+
+variables {𝕜 E F n}
+
 --protected lemma topology_eq_directed' : (bounded_cont_diff_map.topology : topological_space (B^n⟮E, F; 𝕜⟯)) = 
 --  ⨅ (i : ℕ) (hi : ↑i ≤ n), (finset.univ : finset (fin $ i+1)).inf (λ j, tmp_topology₀ j $ j.2.trans hi) :=
 --le_antisymm 
@@ -323,6 +358,25 @@ end
 
 attribute [instance] bounded_cont_diff_map.topology
 attribute [instance] bounded_cont_diff_map.uniform_space
+
+instance : topological_add_group (B^n⟮E, F; 𝕜⟯) :=
+topological_add_group_infi 
+  (λ i, topological_add_group_infi $ λ hi, topological_add_group_induced _)
+
+instance with_seminorms : with_seminorms (bounded_cont_diff_map.seminorm_family 𝕜 E F n) :=
+begin
+  rw [seminorm_family.with_seminorms_iff_nhds_eq_infi, bounded_cont_diff_map.topology_eq_directed'], 
+  simp_rw [nhds_infi, infi_subtype, nhds_finset_inf],
+  refine infi_congr (λ i, infi_congr $ λ hi, _),
+  rw [bounded_cont_diff_map.seminorm_family],
+  dsimp only,
+  rw [seminorm_family.nhds_0_comap_finset_sup, subtype.coe_mk],
+  refine finset.inf_congr rfl (λ j hj, _),
+  rw [nhds_induced, map_zero, 
+      (seminorm_family.with_seminorms_iff_nhds_eq_infi _).mp (norm_with_seminorms 𝕜 (E →ᵇ (E [×j]→L[𝕜] F))),
+      infi_unique, comap_comap],
+  refl
+end
 
 protected lemma has_basis_zero : (𝓝 0 : filter $ B^n⟮E, F; 𝕜⟯).has_basis 
   (λ Nε : ℕ × ℝ, 0 < Nε.2) (λ Nε, ⋂ (i : ℕ) (hiN : i ≤ Nε.1) (hi : ↑i ≤ n), 
@@ -377,10 +431,6 @@ begin
   rw hcomm i hi,
   exact (hcont i hi).comp (bounded_cont_diff_map.iterated_fderivL i).continuous
 end
-
-instance : topological_add_group (B^n⟮E, F; 𝕜⟯) :=
-topological_add_group_infi 
-  (λ i, topological_add_group_infi $ λ hi, topological_add_group_induced _)
 
 instance : has_continuous_smul 𝕜 (B^n⟮E, F; 𝕜⟯) :=
 has_continuous_smul_infi

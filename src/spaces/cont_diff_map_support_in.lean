@@ -207,6 +207,18 @@ topological_add_group_induced _
 instance : has_continuous_smul 𝕜 (cont_diff_map_supported_in 𝕜 E F K n) :=
 has_continuous_smul_induced _
 
+variables (𝕜 E F K n)
+
+protected noncomputable def seminorm_family : 
+  seminorm_family 𝕜 (cont_diff_map_supported_in 𝕜 E F K n) 
+  (bounded_cont_diff_map.seminorm_index n) :=
+(bounded_cont_diff_map.seminorm_family 𝕜 E F n).comp to_bounded_cont_diff_mapₗ
+
+variables {𝕜 E F K n}
+
+instance with_seminorms : with_seminorms (cont_diff_map_supported_in.seminorm_family 𝕜 E F K n) :=
+to_bounded_cont_diff_mapₗ.with_seminorms_induced
+
 noncomputable! def to_bounded_cont_diff_mapL : 
   cont_diff_map_supported_in 𝕜 E F K n →L[𝕜] (B^n⟮E,F;𝕜⟯) :=
 { to_linear_map := to_bounded_cont_diff_mapₗ,
