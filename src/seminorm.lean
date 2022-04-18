@@ -115,6 +115,57 @@ begin
   exact infi_congr (λ hi, rfl)
 end
 
+lemma seminorm.nhds_0_comap_sup (p q : seminorm 𝕜 E) : 
+  (𝓝 0).comap (p ⊔ q : seminorm 𝕜 E) = (𝓝 0).comap p ⊓ (𝓝 0).comap q :=
+begin
+  rw (metric.nhds_basis_ball.comap (_)).ext ((metric.nhds_basis_ball.comap p).inf (metric.nhds_basis_ball.comap q)),
+  { refine λ ε hε, ⟨⟨ε, ε⟩, ⟨hε, hε⟩, _⟩,
+    dsimp only,
+    rw [← p.ball_eq_preimage_ball hε, ← q.ball_eq_preimage_ball hε, ← seminorm.ball_sup,
+        (p ⊔ q).ball_eq_preimage_ball hε] },
+  { rintros ⟨ε₁, ε₂⟩ ⟨hε₁, hε₂⟩,
+    have hε : 0 < min ε₁ ε₂ := lt_min hε₁ hε₂,
+    refine ⟨min ε₁ ε₂, hε, _⟩,
+    dsimp only,
+    rw [← (p ⊔ q).ball_eq_preimage_ball hε, seminorm.ball_sup, p.ball_eq_preimage_ball hε,
+        q.ball_eq_preimage_ball hε],
+    exact inter_subset_inter 
+      (preimage_mono $ metric.ball_subset_ball $ min_le_left _ _) 
+      (preimage_mono $ metric.ball_subset_ball $ min_le_right _ _) }
+end
+
+lemma comap_const_of_mem' {α β : Type*} {x : α} {f : filter α} (h : ∀ V ∈ f, x ∈ V) : comap (λ y : β, x) f = ⊤ :=
+begin
+  ext W,
+  suffices : (∃ (t : set α), t ∈ f ∧ (λ (y : β), x) ⁻¹' t ⊆ W) ↔ W = univ,
+  by simpa,
+  split,
+  { rintro ⟨V, V_in, hW⟩,
+    simpa [preimage_const_of_mem (h V V_in),  univ_subset_iff] using hW },
+  { rintro rfl,
+    use univ,
+    simp [univ_mem] },
+end
+
+lemma seminorm_family.nhds_0_comap_finset_sup (p : seminorm_family 𝕜 E ι) (s : finset ι) :
+  (𝓝 0).comap (s.sup p : seminorm 𝕜 E) = s.inf (λ i, (𝓝 0).comap (p i)) :=
+begin
+  classical,
+  refine s.induction_on _ _,
+  { rw [finset.sup_empty, finset.inf_empty, seminorm.bot_eq_zero, seminorm.coe_zero,
+        pi.zero_def, comap_const_of_mem'],
+    exact λ V, mem_of_mem_nhds },
+  { intros i t hit h,
+    rw [finset.sup_insert, finset.inf_insert, seminorm.nhds_0_comap_sup, h] }
+end
+
+--lemma with_seminorms_sup_of_fintype [fintype ι] [hι : nonempty ι] 
+--  {p : seminorm_family 𝕜 F ι} [with_seminorms p] : 
+--  with_seminorms (λ u : unit, finset.univ.sup p) :=
+--begin
+--  sorry
+--end
+
 end any_field
 
 --lemma finset.with_seminorms_inf {q : seminorm}
