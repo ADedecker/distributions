@@ -1,6 +1,7 @@
 import analysis.calculus.cont_diff
 import topology.continuous_function.bounded
 import analysis.seminorm
+import ..seminorm
 import ..bases
 
 open set filter function
@@ -158,12 +159,16 @@ lemma zero_apply : (0 : B^n⟮E, F; 𝕜⟯) x = 0 := rfl
 @[simp] lemma coe_add : ⇑(f + g) = f + g := rfl
 lemma add_apply : (f + g) x = f x + g x := rfl
 
+@[simp] lemma coe_smul {r : 𝕜} : ⇑(r • f) = r • f := rfl
+lemma smul_apply {r : 𝕜} : (r • f) x = r • (f x) := rfl
+
 @[simp] lemma coe_neg : ⇑(-f) = -f := rfl
 lemma neg_apply : (-f) x = -f x := rfl
 
-protected noncomputable def iterated_fderiv {i : ℕ} (hi : (i : with_top ℕ) ≤ n) 
+protected noncomputable def iterated_fderiv (i : ℕ)
   (f : B^n⟮E, F; 𝕜⟯) : 
   E →ᵇ (E [×i]→L[𝕜] F) :=
+if hi : (i : with_top ℕ) ≤ n then
 { to_fun := iterated_fderiv 𝕜 i f,
   continuous_to_fun := 
   begin
@@ -178,73 +183,123 @@ protected noncomputable def iterated_fderiv {i : ℕ} (hi : (i : with_top ℕ) �
     intros x y,
     simp [dist_eq_norm, norm_sub_le_of_le (hC x) (hC y)]
   end }
+else 0
 
-@[simp] protected lemma iterated_fderiv_apply {i : ℕ} (hi : (i : with_top ℕ) ≤ n) 
+@[simp] protected lemma iterated_fderiv_apply_of_le {i : ℕ} (hi : (i : with_top ℕ) ≤ n) 
   (f : B^n⟮E, F; 𝕜⟯) : 
-  f.iterated_fderiv hi x = iterated_fderiv 𝕜 i f x := rfl
-
-@[simp] protected lemma iterated_fderiv_add {i : ℕ} (hi : (i : with_top ℕ) ≤ n) :
-  (f + g).iterated_fderiv hi = f.iterated_fderiv hi + g.iterated_fderiv hi :=
+  f.iterated_fderiv i x = iterated_fderiv 𝕜 i f x := 
 begin
-  ext x : 1,
-  change iterated_fderiv 𝕜 i (f + g) x = iterated_fderiv 𝕜 i f x + iterated_fderiv 𝕜 i g x,
-  rw iterated_fderiv_add f.cont_diff g.cont_diff hi hi,
+  rw bounded_cont_diff_map.iterated_fderiv,
+  split_ifs,
   refl
 end
 
-@[simp] protected lemma iterated_fderiv_smul {i : ℕ} (hi : (i : with_top ℕ) ≤ n) {r : 𝕜} :
-  (r • f).iterated_fderiv hi = r • f.iterated_fderiv hi :=
+@[simp] protected lemma iterated_fderiv_apply_of_gt {i : ℕ} (hi : n < (i : with_top ℕ)) 
+  (f : B^n⟮E, F; 𝕜⟯) : 
+  f.iterated_fderiv i x = 0 := 
 begin
-  ext x : 1,
-  change iterated_fderiv 𝕜 i (r • f) x = r • iterated_fderiv 𝕜 i f x,
-  rw iterated_fderiv_smul f.cont_diff hi,
-  refl
+  rw lt_iff_not_ge' at hi,
+  rw bounded_cont_diff_map.iterated_fderiv,
+  split_ifs,
+  { contradiction },
+  { refl }
 end
 
-protected noncomputable def iterated_fderivₗ {i : ℕ} (hi : (i : with_top ℕ) ≤ n) :
+@[simp] protected lemma iterated_fderiv_add (i : ℕ) :
+  (f + g).iterated_fderiv i = f.iterated_fderiv i + g.iterated_fderiv i :=
+begin
+  ext x : 1,
+  by_cases hi : ↑i ≤ n,
+  { rw [bounded_continuous_function.add_apply, 
+        bounded_cont_diff_map.iterated_fderiv_apply_of_le hi,
+        bounded_cont_diff_map.iterated_fderiv_apply_of_le hi, 
+        bounded_cont_diff_map.iterated_fderiv_apply_of_le hi,
+        bounded_cont_diff_map.coe_add,
+        iterated_fderiv_add f.cont_diff g.cont_diff hi hi],
+    refl },
+  { rw ← lt_iff_not_ge' at hi,
+    rw [bounded_continuous_function.add_apply, 
+        bounded_cont_diff_map.iterated_fderiv_apply_of_gt hi,
+        bounded_cont_diff_map.iterated_fderiv_apply_of_gt hi, 
+        bounded_cont_diff_map.iterated_fderiv_apply_of_gt hi,
+        add_zero] }
+end
+
+@[simp] protected lemma iterated_fderiv_smul (i : ℕ) {r : 𝕜} :
+  (r • f).iterated_fderiv i = r • f.iterated_fderiv i :=
+begin
+  ext x : 1,
+  by_cases hi : ↑i ≤ n,
+  { rw [bounded_continuous_function.smul_apply,
+        bounded_cont_diff_map.iterated_fderiv_apply_of_le hi,
+        bounded_cont_diff_map.iterated_fderiv_apply_of_le hi,
+        bounded_cont_diff_map.coe_smul,
+        iterated_fderiv_smul f.cont_diff hi],
+    refl },
+  { rw ← lt_iff_not_ge' at hi,
+    rw [bounded_continuous_function.smul_apply, 
+        bounded_cont_diff_map.iterated_fderiv_apply_of_gt hi,
+        bounded_cont_diff_map.iterated_fderiv_apply_of_gt hi, 
+        smul_zero] }
+end
+
+lemma coe_apply_eq_iterated_fderiv_0 (f : B^n⟮E, F; 𝕜⟯) (x : E) :
+  f x = f.iterated_fderiv 0 x fin_zero_elim :=
+by rw [f.iterated_fderiv_apply_of_le (zero_le _), iterated_fderiv_zero_apply]
+
+protected noncomputable def iterated_fderivₗ (i : ℕ) :
   B^n⟮E, F; 𝕜⟯ →ₗ[𝕜] (E →ᵇ (E [×i]→L[𝕜] F)) :=
-{ to_fun := λ f, f.iterated_fderiv hi,
-  map_add' := λ f g, bounded_cont_diff_map.iterated_fderiv_add hi,
-  map_smul' :=λ r f, bounded_cont_diff_map.iterated_fderiv_smul hi }
+{ to_fun := λ f, f.iterated_fderiv i,
+  map_add' := λ f g, bounded_cont_diff_map.iterated_fderiv_add i,
+  map_smul' :=λ r f, bounded_cont_diff_map.iterated_fderiv_smul i }
 
 @[simp] protected lemma iterated_fderivₗ_apply {i : ℕ} (hi : (i : with_top ℕ) ≤ n) 
   (f : B^n⟮E, F; 𝕜⟯) : 
-  bounded_cont_diff_map.iterated_fderivₗ hi f = f.iterated_fderiv hi := rfl
+  bounded_cont_diff_map.iterated_fderivₗ i f = f.iterated_fderiv i := rfl
 
-private noncomputable def tmp_topology₀ (i : ℕ) (hi : (i : with_top ℕ) ≤ n) : 
+private noncomputable def tmp_topology₀ (i : ℕ) : 
   topological_space (B^n⟮E, F; 𝕜⟯) :=
-topological_space.induced (bounded_cont_diff_map.iterated_fderivₗ hi) infer_instance
+topological_space.induced (bounded_cont_diff_map.iterated_fderivₗ i) infer_instance
 
-private noncomputable def tmp_uniform_space₀ (i : ℕ) (hi : (i : with_top ℕ) ≤ n) : 
+private noncomputable def tmp_uniform_space₀ (i : ℕ) : 
   uniform_space (B^n⟮E, F; 𝕜⟯) :=
-uniform_space.comap (bounded_cont_diff_map.iterated_fderivₗ hi) infer_instance -- no defeq problem here
+uniform_space.comap (bounded_cont_diff_map.iterated_fderivₗ i) infer_instance -- no defeq problem here
 
 private noncomputable def tmp_topology₁ (i : ℕ) : 
   topological_space (B^n⟮E, F; 𝕜⟯) :=
-⨅ (hi : (i : with_top ℕ) ≤ n), tmp_topology₀ i hi
+⨅ (hi : (i : with_top ℕ) ≤ n), tmp_topology₀ i
 
 private noncomputable def tmp_uniform_space₁ (i : ℕ) : 
   uniform_space (B^n⟮E, F; 𝕜⟯) :=
 @uniform_space.replace_topology _ (tmp_topology₁ i) 
-  (⨅ (hi : (i : with_top ℕ) ≤ n), tmp_uniform_space₀ i hi) 
+  (⨅ (hi : (i : with_top ℕ) ≤ n), tmp_uniform_space₀ i) 
   (by rw to_topological_space_infi; refl)
 
 protected noncomputable def topology : topological_space (B^n⟮E, F; 𝕜⟯) := 
-  ⨅ (i : ℕ) (hi : (i : with_top ℕ) ≤ n), (tmp_topology₀ i hi)
+  ⨅ (i : ℕ) (hi : (i : with_top ℕ) ≤ n), (tmp_topology₀ i)
 
 protected noncomputable def uniform_space : uniform_space (B^n⟮E, F; 𝕜⟯) := 
 @uniform_space.replace_topology _ bounded_cont_diff_map.topology 
   (⨅ (i : ℕ), (tmp_uniform_space₁ i)) (by rw [to_topological_space_infi]; refl )
 
---lemma test : (bounded_cont_diff_map.topology : topological_space (B^n⟮E, F; 𝕜⟯)) = 
---  ⨅ (i : ℕ) (hi : ↑i ≤ n) (j : ℕ) (hj : (j : with_top ℕ) ≤ ↑i), (tmp_topology₀ j $ hj.trans hi) :=
+protected lemma topology_eq_directed : (bounded_cont_diff_map.topology : topological_space (B^n⟮E, F; 𝕜⟯)) = 
+  ⨅ (i : ℕ) (hi : ↑i ≤ n) (j : ℕ) (hj : (j : with_top ℕ) ≤ ↑i), (tmp_topology₀ j) :=
+le_antisymm 
+  (le_infi₂ $ λ i hi, le_infi₂ $ λ j hj, binfi_le' j $ hj.trans hi)
+  (le_infi₂ $ λ i hi, infi_le_of_le i $ infi_le_of_le hi $ binfi_le' i le_rfl) 
+
+--protected lemma topology_eq_directed' : (bounded_cont_diff_map.topology : topological_space (B^n⟮E, F; 𝕜⟯)) = 
+--  ⨅ (i : ℕ) (hi : ↑i ≤ n), (finset.univ : finset (fin $ i+1)).inf (λ j, tmp_topology₀ j $ j.2.trans hi) :=
 --le_antisymm 
 --  (le_infi₂ $ λ i hi, le_infi₂ $ λ j hj, binfi_le' j $ hj.trans hi)
 --  (le_infi₂ $ λ i hi, infi_le_of_le i $ infi_le_of_le hi $ binfi_le' i le_rfl) 
 
+--protected def seminorm_family : seminorm_family 𝕜 (B^n⟮E, F; 𝕜⟯) {i : ℕ // ↑i ≤ n} :=
+--  λ i, norm_seminorm 𝕜 (E → )
+
 private lemma has_basis_zero₀ (i : ℕ) (hi : (i : with_top ℕ) ≤ n) : 
-  (@nhds B^n⟮E, F; 𝕜⟯ (tmp_topology₀ i hi) 0).has_basis (λ ε : ℝ, 0 < ε)
-  (λ ε, bounded_cont_diff_map.iterated_fderiv hi ⁻¹' metric.ball 0 ε) :=
+  (@nhds B^n⟮E, F; 𝕜⟯ (tmp_topology₀ i) 0).has_basis (λ ε : ℝ, 0 < ε)
+  (λ ε, bounded_cont_diff_map.iterated_fderiv i ⁻¹' metric.ball 0 ε) :=
 begin
   rw nhds_induced,
   refine (has_basis.comap _ (metric.nhds_basis_ball)).to_has_basis _ _;
@@ -256,7 +311,7 @@ end
 
 private lemma has_basis_zero₁ (i : ℕ) : 
   (@nhds B^n⟮E, F; 𝕜⟯ (tmp_topology₁ i) 0).has_basis (λ ε : ℝ, 0 < ε)
-  (λ ε, ⋂ (hi : ↑i ≤ n), bounded_cont_diff_map.iterated_fderiv hi ⁻¹' metric.ball 0 ε) :=
+  (λ ε, ⋂ (hi : ↑i ≤ n), bounded_cont_diff_map.iterated_fderiv i ⁻¹' metric.ball 0 ε) :=
 begin
   rw [nhds_infi, has_basis_iff],
   by_cases hi : (i : with_top ℕ) ≤ n,
@@ -271,7 +326,7 @@ attribute [instance] bounded_cont_diff_map.uniform_space
 
 protected lemma has_basis_zero : (𝓝 0 : filter $ B^n⟮E, F; 𝕜⟯).has_basis 
   (λ Nε : ℕ × ℝ, 0 < Nε.2) (λ Nε, ⋂ (i : ℕ) (hiN : i ≤ Nε.1) (hi : ↑i ≤ n), 
-    bounded_cont_diff_map.iterated_fderiv hi ⁻¹' metric.ball 0 Nε.2) :=
+    bounded_cont_diff_map.iterated_fderiv i ⁻¹' metric.ball 0 Nε.2) :=
 begin
   rw nhds_infi,
   convert foo _ has_basis_zero₁,
@@ -281,16 +336,17 @@ end
 
 protected noncomputable def iterated_fderivL {i : ℕ} (hi : (i : with_top ℕ) ≤ n) : 
   (B^n⟮E, F; 𝕜⟯) →L[𝕜] (E →ᵇ (E [×i]→L[𝕜] F)) :=
-{ to_linear_map := bounded_cont_diff_map.iterated_fderivₗ hi,
-  cont := continuous_infi_dom (continuous_infi_dom continuous_induced_dom) }
+{ to_linear_map := bounded_cont_diff_map.iterated_fderivₗ i,
+  cont := continuous_infi_dom 
+    (@continuous_infi_dom _ _ _ _ (λ _, tmp_topology₀ i) _ hi continuous_induced_dom) }
 
 @[simp] protected lemma iterated_fderivL_apply {i : ℕ} (hi : (i : with_top ℕ) ≤ n) 
   (f : B^n⟮E, F; 𝕜⟯) : 
-  bounded_cont_diff_map.iterated_fderivL hi f = f.iterated_fderiv hi := rfl
+  bounded_cont_diff_map.iterated_fderivL hi f = f.iterated_fderiv i := rfl
 
 lemma continuous_iff {X : Type*} [topological_space X] (φ : X → B^n⟮E, F; 𝕜⟯) : 
   continuous φ ↔ ∀ (i : ℕ) (hi : ↑i ≤ n), continuous 
-    ((bounded_cont_diff_map.iterated_fderiv hi) ∘ φ) :=
+    ((bounded_cont_diff_map.iterated_fderiv i) ∘ φ) :=
 ⟨ λ hφ i hi, (bounded_cont_diff_map.iterated_fderivL hi).continuous.comp hφ, 
   λ h, continuous_infi_rng (λ i, continuous_infi_rng $ λ hi, continuous_induced_rng (h i hi)) ⟩
 
@@ -300,7 +356,7 @@ protected lemma continuous_of_commutes {𝕜' E' F' : Type*} [normed_group E'] [
   (ψ : Π (i : ℕ), (E →ᵇ (E [×i]→L[𝕜] F)) → E' →ᵇ (E' [×i]→L[𝕜'] F'))
   (hcont : ∀ (i : ℕ) (hi : ↑i ≤ n), continuous $ ψ i)
   (hcomm : ∀ (i : ℕ) (hi : ↑i ≤ n), 
-    bounded_cont_diff_map.iterated_fderiv hi ∘ φ = ψ i ∘ bounded_cont_diff_map.iterated_fderiv hi) :
+    bounded_cont_diff_map.iterated_fderiv i ∘ φ = ψ i ∘ bounded_cont_diff_map.iterated_fderiv i) :
   continuous φ :=
 begin
   rw continuous_iff,
@@ -319,18 +375,71 @@ has_continuous_smul_infi
 
 variables (𝕜 E F n)
 
-noncomputable def to_bounded_continuous_function : 
+private noncomputable def to_bounded_continuous_function_aux : 
   (B^n⟮E, F; 𝕜⟯) →L[𝕜] (E →ᵇ F) :=
 ((continuous_multilinear_curry_fin0 𝕜 E F).to_continuous_linear_equiv
   .comp_left_continuous_bounded E).to_continuous_linear_map ∘L
 bounded_cont_diff_map.iterated_fderivL (zero_le _)
 
+private lemma to_bounded_continuous_function_aux_spec (f : B^n⟮E, F; 𝕜⟯) (x : E) :
+  to_bounded_continuous_function_aux 𝕜 E F n f x = f x := 
+begin
+  change f.iterated_fderiv 0 x 0 = f x,
+  rw bounded_cont_diff_map.iterated_fderiv_apply_of_le (zero_le _),
+  refl
+end
+
+def to_bounded_continuous_function (f : B^n⟮E, F; 𝕜⟯) : E →ᵇ F :=
+{ to_fun := f,
+  map_bounded' := 
+  begin
+    rcases (to_bounded_continuous_function_aux 𝕜 E F n f).bounded with ⟨C, hC⟩,
+    refine ⟨C, λ x y, _⟩,
+    specialize hC x y,
+    rw [to_bounded_continuous_function_aux_spec, to_bounded_continuous_function_aux_spec] at hC,
+    exact hC
+  end,
+  continuous_to_fun := 
+  begin
+    convert (to_bounded_continuous_function_aux 𝕜 E F n f).continuous using 1,
+    ext x,
+    rw to_bounded_continuous_function_aux_spec
+  end }
+
+def to_bounded_continuous_functionₗ : (B^n⟮E, F; 𝕜⟯) →ₗ[𝕜] (E →ᵇ F) :=
+{ to_fun := to_bounded_continuous_function 𝕜 E F n,
+  map_add' := λ f g, rfl,
+  map_smul' := λ a f, rfl }
+
+noncomputable! def to_bounded_continuous_functionL : 
+  (B^n⟮E, F; 𝕜⟯) →L[𝕜] (E →ᵇ F) :=
+{ to_linear_map := to_bounded_continuous_functionₗ 𝕜 E F n,
+  cont := 
+  begin
+    convert (to_bounded_continuous_function_aux 𝕜 E F n).continuous using 1,
+    ext f x,
+    rw to_bounded_continuous_function_aux_spec,
+    refl
+  end }
+
+lemma to_bounded_continuous_functionL_eq_iterated_fderivL_zero :
+  bounded_cont_diff_map.to_bounded_continuous_functionL 𝕜 E F n =
+  ((continuous_multilinear_curry_fin0 𝕜 E F).to_continuous_linear_equiv
+    .comp_left_continuous_bounded E).to_continuous_linear_map ∘L
+  bounded_cont_diff_map.iterated_fderivL (zero_le _) := 
+begin
+  ext f x,
+  change f x = _,
+  rw ← to_bounded_continuous_function_aux_spec,
+  refl
+end
+
 lemma to_bounded_continuous_function_injective : 
-  injective (to_bounded_continuous_function 𝕜 E F n) :=
+  injective (to_bounded_continuous_functionL 𝕜 E F n) :=
 begin
   intros f g hfg,
   ext x,
-  change (to_bounded_continuous_function 𝕜 E F n f) x = _,
+  change to_bounded_continuous_functionL 𝕜 E F n f x = _,
   rw hfg,
   refl
 end
@@ -347,12 +456,27 @@ protected def of_leₗ {k : with_top ℕ} (hkn : k ≤ n) :
   map_add' := λ f g, by ext; refl,
   map_smul' := λ c f, by ext; refl }
 
+protected lemma iterated_fderiv_of_le {k : with_top ℕ} (hkn : k ≤ n) 
+  {i : ℕ} (hi : ↑i ≤ k) (f : B^n⟮E, F; 𝕜⟯) : 
+  (f.of_le 𝕜 E F hkn).iterated_fderiv i = f.iterated_fderiv i :=
+begin
+  ext x,
+  rw [bounded_cont_diff_map.iterated_fderiv_apply_of_le hi,
+      bounded_cont_diff_map.iterated_fderiv_apply_of_le (hi.trans hkn)],
+  refl
+end
+
 -- TODO : why do I need the `!` ?
 protected noncomputable! def of_leL {k : with_top ℕ} (hkn : k ≤ n) :
   B^n⟮E, F; 𝕜⟯ →L[𝕜] B^k⟮E, F; 𝕜⟯ :=
 { to_linear_map := bounded_cont_diff_map.of_leₗ 𝕜 E F hkn,
-  cont := continuous_infi_rng (λ i, continuous_infi_rng $ λ hi, continuous_induced_rng 
-    (bounded_cont_diff_map.iterated_fderivL $ hi.trans hkn).continuous) }
+  cont := 
+  begin
+    refine continuous_infi_rng (λ i, continuous_infi_rng $ λ hi, continuous_induced_rng _),
+    convert (bounded_cont_diff_map.iterated_fderivL $ hi.trans hkn).continuous using 1,
+    ext f : 1,
+    exact f.iterated_fderiv_of_le 𝕜 E F hkn hi
+  end }
 
 --protected lemma topology_eq_infi_induced_of_le :
 --  bounded_cont_diff_map.topology = ⨅ (i : ℕ) (hi : ↑i ≤ n), bounded_cont_diff_map.topology.induced 
@@ -365,12 +489,13 @@ protected noncomputable! def of_leL {k : with_top ℕ} (hkn : k ≤ n) :
 section zero
 
 private lemma uniform_space_eq_comap : bounded_cont_diff_map.uniform_space = 
-  uniform_space.comap (to_bounded_continuous_function 𝕜 E F 0) infer_instance := 
+  uniform_space.comap (to_bounded_continuous_functionL 𝕜 E F 0) infer_instance := 
 begin
   suffices : (bounded_cont_diff_map.uniform_space : uniform_space $ B^0⟮E, F; 𝕜⟯) = 
-    uniform_space.comap (bounded_cont_diff_map.iterated_fderivₗ $ le_refl _) infer_instance,
-  { rw [this, to_bounded_continuous_function, continuous_linear_map.coe_comp', 
-        uniform_space.comap_comap],
+    uniform_space.comap (bounded_cont_diff_map.iterated_fderivₗ 0) infer_instance,
+  { rw [this, to_bounded_continuous_functionL_eq_iterated_fderivL_zero, 
+        continuous_linear_map.coe_comp'],
+    conv_rhs {rw [uniform_space.comap_comap]},
     refine congr_arg _ _,
     ext s,
     change s ∈ uniformity _ ↔ s ∈  uniformity _,
@@ -382,7 +507,7 @@ begin
   rw infi_range,
   change (⨅ _ _, _) = _,
   simp_rw infi_range,
-  refine le_antisymm (binfi_le' 0 _) (le_infi $ λ i, le_infi $ λ hi, _),
+  refine le_antisymm (binfi_le' 0 le_rfl) (le_infi $ λ i, le_infi $ λ hi, _),
   convert le_refl _,
   rw ← nat.le_zero_iff, exact_mod_cast hi
 end
@@ -394,10 +519,10 @@ noncomputable instance : metric_space (B^0⟮E, F; 𝕜⟯) :=
 
 noncomputable instance : normed_group (B^0⟮E, F; 𝕜⟯) :=
 { to_metric_space := infer_instance,
-  ..normed_group.induced (to_bounded_continuous_function 𝕜 E F 0).to_linear_map.to_add_monoid_hom 
+  ..normed_group.induced (to_bounded_continuous_functionₗ 𝕜 E F 0).to_add_monoid_hom 
   (to_bounded_continuous_function_injective 𝕜 E F 0) }
 
-@[simp] lemma norm_def {f : B^0⟮E, F; 𝕜⟯} : ∥f∥ = ∥to_bounded_continuous_function 𝕜 E F 0 f∥ := rfl
+@[simp] lemma norm_def {f : B^0⟮E, F; 𝕜⟯} : ∥f∥ = ∥to_bounded_continuous_functionL 𝕜 E F 0 f∥ := rfl
 
 noncomputable! instance : normed_space 𝕜 (B^0⟮E, F; 𝕜⟯) :=
 { norm_smul_le := λ c f, 
@@ -458,7 +583,7 @@ noncomputable def fderivL : B^⊤⟮E, F; 𝕜⟯ →L[𝕜] B^⊤⟮E, E →L[�
           .to_continuous_linear_equiv.to_continuous_linear_map).comp 
       (bounded_cont_diff_map.iterated_fderivL (le_top : (i+1 : with_top ℕ) ≤ ⊤))
       with hφ,
-    have : bounded_cont_diff_map.iterated_fderiv hi ∘ bounded_cont_diff_map.fderivₗ.to_fun = φ,
+    have : bounded_cont_diff_map.iterated_fderiv i ∘ bounded_cont_diff_map.fderivₗ.to_fun = φ,
     { rw hφ,
       ext f H k x, 
       simp [iterated_fderiv_succ_apply_right] }, -- slooooooooooow
