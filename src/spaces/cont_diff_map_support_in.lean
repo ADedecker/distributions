@@ -223,24 +223,17 @@ lemma snorms_monotone :
   monotone (snorms 𝕜 E F K n) :=
 λ i j hij, seminorm.comp_mono _ (bounded_cont_diff_map.snorms_monotone hij)
 
-#check finset.nonempty.cons_induction
-
-lemma _root_.seminorm.finset_sup_apply' {ι G : Type*} [add_comm_group G] [module 𝕜 G] 
-  (p : ι → seminorm 𝕜 G) (s : finset ι) (hs : s.nonempty) (x : G) :
-  s.sup p x = s.sup' hs (λ i, p i x) :=
-begin
-  refine finset.nonempty.cons_induction _ _ hs,
-  { intros i,
-    rw [finset.sup_singleton, finset.sup'_singleton] },
-  { intros i s his hs ih,
-    rw [finset.sup_cons, finset.sup'_cons hs, seminorm.sup_apply, ih] }
-end
+--lemma finset.sup_eq_csupr {α β : Type*} [nonempty α] [conditionally_complete_linear_order_bot β] (s : finset α) 
+--  (f : α → β) : s.sup f = (⨆a∈s, f a) :=
+--le_antisymm
+--  (finset.sup_le $ assume a ha, le_csupr_of_le sorry a $ le_csupr finite_range_const.bdd_above ha)
+--  (csupr_le' $ assume a, csupr_le' $ assume ha, finset.le_sup ha)
 
 lemma snorms_apply (i : ℕ) (hi : ↑i ≤ n) :
-  snorms 𝕜 E F K n ⟨i, hi⟩ f = ⨆ (j ≤ i) (x ∈ K), ∥iterated_fderiv 𝕜 j f x∥ :=
+  snorms 𝕜 E F K n ⟨i, hi⟩ f = ↑(⨆ (j ≤ i) (x ∈ K), ∥iterated_fderiv 𝕜 j f x∥₊) :=
 begin
   rw [snorms, bounded_cont_diff_map.snorms, seminorm_family.comp_apply, seminorm.comp_apply,
-      subtype.coe_mk, seminorm.finset_sup_apply' _ _ (finset.nonempty_Icc.mpr (zero_le _))],
+      subtype.coe_mk, seminorm.finset_sup_apply, nnreal.coe_injective.eq_iff],
   -- finset.sup'_eq_csupr, sup_ima],
   sorry
 end
@@ -436,10 +429,6 @@ variables {E F G : Type*} [normed_group E] [normed_group F] [normed_group G]
   [normed_space ℝ E] [normed_space ℝ F] [normed_space ℝ G] {K : compacts E} 
   {n : with_top ℕ} {f g : cont_diff_map_supported_in ℝ E F K n} {x : E}
 
-#check linear_map.bound_of_ball_bound
-#check linear_map.smul_apply
-#check seminorm
-
 lemma continuous_iff_of_linear (T : cont_diff_map_supported_in ℝ E F K n →ₗ[ℝ] G) : 
   continuous T ↔ ∃ (p : ℕ), ∃ C > 0, ∀ f : cont_diff_map_supported_in ℝ E F K n, 
     ∥T f∥ ≤ C * (⨆ (i ≤ p) (hin : ↑i ≤ n) (x : E), ∥iterated_fderiv ℝ i f x∥) :=
@@ -457,9 +446,6 @@ begin
     sorry },
   sorry
 end
-
-#check monotone.directed_le
-#check seminorm.coe_smul
 
 lemma continuous_iff_of_linear' (T : cont_diff_map_supported_in ℝ E F K n →ₗ[ℝ] G) : 
   continuous T ↔ ∃ (p : ℕ) (C > 0), ∀ f : cont_diff_map_supported_in ℝ E F K n, 

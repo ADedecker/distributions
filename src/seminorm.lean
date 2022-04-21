@@ -180,6 +180,30 @@ begin
     rwa finset.sup_singleton }
 end
 
+lemma seminorm.finset_sup_apply' (p : ι → seminorm 𝕜 F) {s : finset ι} (hs : s.nonempty) (x : F) :
+  s.sup p x = s.sup' hs (λ i, p i x) :=
+begin
+  refine finset.nonempty.cons_induction _ _ hs,
+  { intros i,
+    rw [finset.sup_singleton, finset.sup'_singleton] },
+  { intros i s his hs ih,
+    rw [finset.sup_cons, finset.sup'_cons hs, seminorm.sup_apply, ih] }
+end
+
+--section unique
+--
+--variables [unique ι] [t : topological_space E] (p : seminorm_family 𝕜 E ι) [with_seminorms p]
+--
+--def with_seminorms.to_pseudo_metric_space : has_dist E :=
+--{  }
+--
+--def with_seminorms.to_semi_normed_group : semi_normed_group E :=
+--{  }
+--
+--def with_seminorms.to_normed_space_of_singleton_of_t2 [t : topological_space E] 
+--
+--end unique
+
 --lemma with_seminorms_sup_of_fintype [fintype ι] [hι : nonempty ι] 
 --  {p : seminorm_family 𝕜 F ι} [with_seminorms p] : 
 --  with_seminorms (λ u : unit, finset.univ.sup p) :=
